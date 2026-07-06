@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0E0C0A">
+<title>职场守护 · Workplace Guardian</title>
+<style>
+:root{
+  --ink:#0E0C0A;--bg:#F8F5F0;--card:#FFFFFF;--warm:#F2EDE4;--border:#E5DDD2;
+  --muted:#9A8F80;--red:#C13B2A;--amber:#D97706;--green:#16A34A;--blue:#1D4ED8;--purple:#7C3AED;
+  --serif:'Noto Serif SC',Georgia,serif;--sans:-apple-system,'Noto Sans SC','PingFang SC',sans-serif;--mono:'DM Mono',ui-monospace,monospace;
+  --tabh:64px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+/* app frame = phone width on desktop */
+.app{max-width:480px;margin:0 auto;min-height:100vh;background:var(--bg);position:relative;box-shadow:0 0 60px rgba(0,0,0,.06)}
+.screen{display:none;padding:14px 18px calc(var(--tabh) + 26px);animation:fade .32s ease}
+.screen.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.hidden{display:none!important}
+h1,h2,h3{font-family:var(--serif)}
+.serif{font-family:var(--serif)}
+
+/* top bar */
+.topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:14px 18px 12px;background:rgba(248,245,240,.92);backdrop-filter:blur(14px)}
+.tb-brand{display:flex;align-items:center;gap:9px}
+.tb-logo{width:30px;height:30px;border-radius:9px;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-weight:700;font-size:14px}
+.tb-name{font-family:var(--serif);font-weight:700;font-size:15px}
+.lang-btn{border:1px solid var(--border);background:var(--card);border-radius:20px;padding:5px 12px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;font-family:var(--sans)}
+.lang-btn:active{transform:scale(.96)}
+
+/* bottom tab bar */
+.tabbar{position:fixed;bottom:0;left:0;right:0;max-width:480px;margin:0 auto;height:var(--tabh);background:rgba(255,255,255,.94);backdrop-filter:blur(18px);border-top:1px solid var(--border);display:flex;z-index:60;padding-bottom:env(safe-area-inset-bottom)}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;border:none;background:none;color:var(--muted);font-family:var(--sans);transition:color .15s}
+.tab .ti{font-size:20px;line-height:1}
+.tab .tl{font-size:10px;font-weight:600}
+.tab.on{color:var(--ink)}
+.tab.rec .ti{width:40px;height:40px;border-radius:14px;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;margin-top:-14px;box-shadow:0 6px 16px rgba(14,12,10,.28)}
+.tab.rec.on .tl,.tab.rec .tl{color:var(--ink)}
+
+/* generic */
+.eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.h-title{font-size:26px;font-weight:800;letter-spacing:-.5px;line-height:1.2;margin-bottom:6px}
+.h-sub{font-size:13.5px;color:var(--muted);line-height:1.6;margin-bottom:18px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:18px;box-shadow:0 2px 10px rgba(14,12,10,.04)}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:15px;border-radius:14px;background:var(--ink);color:#fff;border:none;font-family:var(--sans);font-size:15px;font-weight:700;cursor:pointer;transition:transform .15s,box-shadow .2s;box-shadow:0 2px 8px rgba(14,12,10,.2)}
+.btn:active{transform:scale(.98)}
+.btn-2{background:var(--warm);color:var(--ink);border:1.5px solid var(--border);box-shadow:none}
+.btn-sm{width:auto;padding:9px 16px;font-size:13px;border-radius:11px}
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px}
+.pill-g{background:rgba(22,163,74,.1);color:var(--green)}
+.pill-a{background:#fff7ed;color:var(--amber)}
+.pro-tag{font-size:9.5px;font-weight:700;letter-spacing:.5px;padding:2px 7px;border-radius:6px;background:linear-gradient(135deg,#D97706,#C13B2A);color:#fff;vertical-align:middle}
+
+/* ONBOARDING */
+.onb{position:fixed;inset:0;z-index:200;background:var(--bg);max-width:480px;margin:0 auto;display:flex;flex-direction:column}
+.onb-track{flex:1;display:flex;transition:transform .4s cubic-bezier(.22,1,.36,1)}
+.onb-slide{min-width:100%;padding:70px 32px 20px;display:flex;flex-direction:column}
+.onb-emoji{font-size:60px;margin-bottom:26px}
+.onb-h{font-size:30px;font-weight:800;line-height:1.22;letter-spacing:-.5px;margin-bottom:16px}
+.onb-h .hl{color:var(--red)}
+.onb-p{font-size:15.5px;line-height:1.7;color:#5a5040}
+.onb-visual{margin-top:28px;background:var(--card);border:1px solid var(--border);border-radius:18px;padding:18px;box-shadow:0 8px 30px rgba(14,12,10,.06)}
+.onb-foot{padding:14px 32px calc(34px + env(safe-area-inset-bottom))}
+.onb-dots{display:flex;gap:7px;justify-content:center;margin-bottom:18px}
+.onb-dot{width:7px;height:7px;border-radius:50%;background:var(--border);transition:all .3s}
+.onb-dot.on{background:var(--ink);width:22px;border-radius:4px}
+.onb-skip{position:absolute;top:calc(20px + env(safe-area-inset-top));right:26px;font-size:13px;color:var(--muted);background:none;border:none;cursor:pointer;z-index:2}
+.mini-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px}
+.mini-row:last-child{border:none}
+.mini-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* RECORD */
+.cat-row{display:flex;gap:8px;margin-bottom:16px}
+.cat{flex:1;padding:12px 6px;border-radius:14px;border:2px solid var(--border);background:var(--card);text-align:center;cursor:pointer;transition:all .15s}
+.cat.on{border-color:var(--ink);background:var(--ink);color:#fff}
+.cat .ce{font-size:20px}.cat .cn{font-size:11.5px;font-weight:700;margin-top:3px}
+.fsec{margin-bottom:16px}
+.flabel{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-family:var(--mono);margin-bottom:9px;display:flex;gap:7px;align-items:center}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{padding:8px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--card);color:#7a7060;font-size:13px;cursor:pointer;font-weight:500;transition:all .12s}
+.chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.inp,.ta{width:100%;background:var(--card);border:1.5px solid var(--border);border-radius:11px;padding:12px 13px;font-family:var(--sans);font-size:14px;color:var(--ink);outline:none;transition:border-color .15s}
+.inp:focus,.ta:focus{border-color:var(--ink)}
+.ta{min-height:100px;resize:none;line-height:1.6}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.sev3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.sev{padding:11px 6px;border-radius:12px;border:2px solid var(--border);background:var(--card);text-align:center;cursor:pointer;font-size:11.5px;font-weight:700}
+.sev .se{font-size:17px;display:block;margin-bottom:3px}
+.sev[data-s=low].on{background:#fefce8;border-color:#ca8a04}
+.sev[data-s=med].on{background:#fff7ed;border-color:var(--amber)}
+.sev[data-s=high].on{background:#fef2f2;border-color:var(--red)}
+.evg{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.ev{padding:11px 4px;border-radius:11px;border:2px dashed var(--border);background:var(--card);text-align:center;cursor:pointer;font-size:10px;color:var(--muted);font-weight:600}
+.ev.on{border-style:solid;border-color:var(--ink);color:var(--ink)}
+.ev .ee{font-size:16px;display:block;margin-bottom:3px}
+.enc{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--green);background:rgba(22,163,74,.08);border:1px solid rgba(22,163,74,.2);border-radius:20px;padding:5px 11px;margin-bottom:16px}
+
+/* TIMELINE */
+.kpis{display:flex;gap:9px;margin-bottom:18px}
+.kpi{flex:1;background:var(--ink);border-radius:14px;padding:14px 10px;color:#fff;text-align:center}
+.kpi-n{font-family:var(--serif);font-size:24px;font-weight:700;line-height:1}
+.kpi-l{font-size:10px;color:#8a8070;margin-top:4px}
+.tl-item{display:flex;gap:13px}
+.tl-stem{display:flex;flex-direction:column;align-items:center;width:14px;flex-shrink:0;padding-top:6px}
+.tl-dot{width:13px;height:13px;border-radius:50%;flex-shrink:0}
+.tl-con{width:2px;flex:1;background:var(--border);margin-top:4px;min-height:14px}
+.tl-item:last-child .tl-con{display:none}
+.tl-card{flex:1;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:15px;margin-bottom:14px}
+.tl-ch{display:flex;justify-content:space-between;gap:8px;margin-bottom:6px}
+.tl-ct{font-family:var(--serif);font-size:15px;font-weight:600}
+.tl-cm{font-family:var(--mono);font-size:10.5px;color:var(--muted);white-space:nowrap}
+.tl-cd{font-size:13px;color:#5a5040;line-height:1.6;margin-bottom:9px}
+.tl-tags{display:flex;flex-wrap:wrap;gap:5px}
+.tt{font-size:10px;padding:3px 8px;border-radius:12px;font-weight:600}
+.tt-t{background:#f5f0e8;color:#7a6040}.tt-e{background:#f0fdf4;color:var(--green)}.tt-h{background:#fef2f2;color:var(--red)}
+.empty{text-align:center;padding:70px 20px}
+.empty-e{font-size:46px;margin-bottom:14px}
+.empty-t{font-size:19px;font-weight:700;margin-bottom:7px}
+.empty-s{font-size:13.5px;color:var(--muted);margin-bottom:22px;line-height:1.6}
+.prog-wrap{height:8px;background:var(--warm);border-radius:4px;overflow:hidden;margin:10px 0 6px}
+.prog-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--green),#4ade80);transition:width .6s}
+
+/* AI CHAT */
+#s-ai{padding:0}
+.ai-wrap{display:flex;flex-direction:column;height:calc(100dvh - var(--tabh))}
+.ai-top{padding:14px 18px 12px;display:flex;align-items:center;gap:11px;border-bottom:1px solid var(--border);background:rgba(248,245,240,.92);backdrop-filter:blur(14px)}
+.ai-av{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#0f5132,#198754);display:flex;align-items:center;justify-content:center;font-size:18px}
+.ai-nm{font-family:var(--serif);font-weight:600;font-size:15px}
+.ai-st{font-size:11px;color:var(--green);display:flex;align-items:center;gap:5px}
+.ai-st::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--green)}
+.msgs{flex:1;overflow-y:auto;padding:20px 18px;display:flex;flex-direction:column;gap:15px}
+.cm{display:flex;flex-direction:column;gap:4px;max-width:84%}
+.cm.usr{align-self:flex-end;align-items:flex-end;max-width:76%}
+.cb{padding:12px 15px;border-radius:16px;font-size:14px;line-height:1.65}
+.cm.ai .cb{background:var(--card);border:1px solid var(--border);border-bottom-left-radius:4px}
+.cm.usr .cb{background:var(--ink);color:#fff;border-bottom-right-radius:4px}
+.ct{font-family:var(--mono);font-size:9.5px;color:var(--muted);padding:0 3px}
+.qr{display:flex;flex-wrap:wrap;gap:7px;padding:2px 18px 10px}
+.qrb{padding:8px 13px;border-radius:18px;border:1.5px solid var(--border);background:var(--card);font-size:12.5px;cursor:pointer;font-family:var(--sans)}
+.ai-foot{padding:10px 14px 12px;border-top:1px solid var(--border);display:flex;gap:9px;align-items:flex-end;background:var(--bg)}
+.ai-ta{flex:1;background:var(--card);border:1.5px solid var(--border);border-radius:13px;padding:11px 14px;font-family:var(--sans);font-size:14px;outline:none;resize:none;min-height:44px;max-height:110px;line-height:1.5}
+.ai-ta:focus{border-color:var(--ink)}
+.ai-send{width:44px;height:44px;border-radius:13px;background:var(--ink);color:#fff;border:none;font-size:17px;cursor:pointer;flex-shrink:0}
+.typing{display:flex;gap:4px;padding:13px 15px;background:var(--card);border:1px solid var(--border);border-radius:14px;border-bottom-left-radius:4px;width:fit-content}
+.td{width:7px;height:7px;border-radius:50%;background:var(--muted);animation:tb 1.2s infinite}
+.td:nth-child(2){animation-delay:.2s}.td:nth-child(3){animation-delay:.4s}
+@keyframes tb{0%,60%,100%{transform:scale(.7);opacity:.4}30%{transform:scale(1);opacity:1}}
+.up-inline{margin:4px 0 2px;background:linear-gradient(135deg,#1a1510,#0e0c0a);border-radius:16px;padding:16px;color:#fff}
+.up-inline h4{font-family:var(--serif);font-size:15px;margin-bottom:6px}
+.up-inline p{font-size:12.5px;color:#b8ad9c;line-height:1.6;margin-bottom:12px}
+
+/* CONSULT */
+.seg{display:flex;gap:7px;margin-bottom:16px}
+.seg-b{flex:1;padding:9px 4px;border-radius:11px;border:1.5px solid var(--border);background:var(--card);font-size:12.5px;font-weight:600;color:var(--muted);cursor:pointer;text-align:center}
+.seg-b.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.ex-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:12px}
+.ex-top{display:flex;gap:12px;align-items:flex-start}
+.ex-av{width:48px;height:48px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.ex-nm{font-family:var(--serif);font-size:16px;font-weight:700}
+.ex-ro{font-size:11.5px;color:var(--muted);margin-top:1px}
+.ex-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;margin-top:5px;display:inline-block}
+.ex-desc{font-size:12.5px;color:#5a5040;line-height:1.6;margin:11px 0}
+.ex-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px}
+.ex-tag{font-size:10px;padding:3px 8px;border-radius:8px;background:var(--warm);color:var(--muted)}
+.ex-bot{display:flex;align-items:center;justify-content:space-between;padding-top:12px;border-top:1px solid var(--border)}
+.ex-price{font-size:11.5px;color:var(--muted)}
+.ex-price strong{font-family:var(--serif);font-size:16px;color:var(--ink)}
+.note{background:var(--warm);border:1px solid var(--border);border-radius:14px;padding:14px 16px;font-size:12.5px;color:#5a5040;line-height:1.65;margin-top:6px}
+
+/* ME */
+.me-hero{background:linear-gradient(160deg,#1a1510,#0e0c0a);border-radius:20px;padding:22px;color:#fff;margin-bottom:16px}
+.me-row{display:flex;align-items:center;justify-content:space-between;padding:15px 0;border-bottom:1px solid var(--border);font-size:14px;cursor:pointer}
+.me-row:last-child{border:none}
+.me-row .mr-r{color:var(--muted);font-size:13px}
+.pro-card{background:linear-gradient(135deg,#2a2015,#0e0c0a);border-radius:18px;padding:20px;color:#fff;margin-bottom:16px;position:relative;overflow:hidden}
+.pro-card::after{content:'';position:absolute;top:-30px;right:-20px;width:120px;height:120px;background:radial-gradient(circle,rgba(217,119,6,.35),transparent 70%)}
+.pro-feats{margin:14px 0}
+.pro-feat{display:flex;gap:9px;font-size:13px;padding:5px 0;color:#e8e0d4}
+.pro-feat::before{content:'✓';color:#f0b429;font-weight:700}
+
+/* MODAL */
+.ov{position:fixed;inset:0;z-index:300;background:rgba(14,12,10,.6);backdrop-filter:blur(6px);display:none;align-items:flex-end;justify-content:center}
+.ov.on{display:flex}
+.sheet{background:#fff;border-radius:24px 24px 0 0;padding:26px 22px calc(26px + env(safe-area-inset-bottom));width:100%;max-width:480px;animation:slideup .3s cubic-bezier(.22,1,.36,1)}
+@keyframes slideup{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.sheet h3{font-size:21px;margin-bottom:8px}
+.sheet .sd{font-size:13.5px;color:var(--muted);line-height:1.65;margin-bottom:18px}
+.price-big{font-family:var(--serif);font-size:38px;font-weight:800}
+.price-old{font-size:15px;color:var(--muted);text-decoration:line-through;margin-left:8px}
+.pk-feat{display:flex;gap:10px;font-size:13.5px;padding:8px 0;align-items:flex-start;line-height:1.5}
+.pk-feat .ic{font-size:16px;flex-shrink:0}
+.close-x{position:absolute;top:16px;right:18px;font-size:22px;color:var(--muted);background:none;border:none;cursor:pointer}
+.cf-inp{width:100%;background:var(--warm);border:1.5px solid var(--border);border-radius:11px;padding:12px 13px;font-family:var(--sans);font-size:14px;margin-bottom:9px;outline:none}
+.cf-inp:focus{border-color:var(--ink)}
+.letter{background:var(--warm);border:1px solid var(--border);border-radius:12px;padding:16px;font-size:13px;line-height:1.75;color:#3a3228;max-height:230px;overflow-y:auto;white-space:pre-wrap;position:relative}
+.letter.locked{max-height:150px;overflow:hidden}
+.letter.locked::after{content:'';position:absolute;bottom:0;left:0;right:0;height:80px;background:linear-gradient(transparent,var(--warm))}
+
+/* TOAST */
+.toast{position:fixed;bottom:calc(var(--tabh) + 20px);left:50%;transform:translateX(-50%) translateY(120px);background:var(--ink);color:#fff;padding:12px 22px;border-radius:30px;font-size:13.5px;font-weight:600;z-index:400;transition:transform .35s cubic-bezier(.34,1.56,.64,1);box-shadow:0 8px 30px rgba(0,0,0,.25);white-space:nowrap}
+.toast.on{transform:translateX(-50%) translateY(0)}
+
+/* VOICE INPUT */
+.vin{position:relative;display:block;width:100%}
+.vin.flex{flex:1;width:auto}
+.vin > input,.vin > textarea{width:100%;padding-right:44px}
+.vin > .mic{position:absolute;right:7px;bottom:7px;width:32px;height:32px;border-radius:50%;border:none;background:var(--warm);color:var(--muted);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2;transition:transform .12s}
+.vin > .mic:active{transform:scale(.9)}
+.vin > .mic.rec{background:var(--red);color:#fff;animation:micp 1.1s infinite}
+@keyframes micp{0%,100%{box-shadow:0 0 0 0 rgba(193,59,42,.45)}70%{box-shadow:0 0 0 8px rgba(193,59,42,0)}}
+</style>
+</head>
+<body>
+
+<!-- ONBOARDING -->
+<div class="onb" id="onb">
+  <button class="onb-skip" id="onbSkip" onclick="finishOnb()">跳过</button>
+  <div class="onb-track" id="onbTrack">
+    <!-- slide 1 -->
+    <div class="onb-slide">
+      <div class="onb-emoji">🫂</div>
+      <div class="onb-h" data-t="onb1h"></div>
+      <div class="onb-p" data-t="onb1p"></div>
+    </div>
+    <!-- slide 2 -->
+    <div class="onb-slide">
+      <div class="onb-emoji">📝</div>
+      <div class="onb-h" data-t="onb2h"></div>
+      <div class="onb-p" data-t="onb2p"></div>
+      <div class="onb-visual">
+        <div class="mini-row"><span class="mini-dot" style="background:#c13b2a"></span><b data-t="onb2r1"></b></div>
+        <div class="mini-row"><span class="mini-dot" style="background:#d97706"></span><b data-t="onb2r2"></b></div>
+        <div class="mini-row"><span class="mini-dot" style="background:#7c3aed"></span><b data-t="onb2r3"></b></div>
+      </div>
+    </div>
+    <!-- slide 3 -->
+    <div class="onb-slide">
+      <div class="onb-emoji">🌿</div>
+      <div class="onb-h" data-t="onb3h"></div>
+      <div class="onb-p" data-t="onb3p"></div>
+    </div>
+    <!-- slide 4 -->
+    <div class="onb-slide">
+      <div class="onb-emoji">🛡️</div>
+      <div class="onb-h"><span data-t="onb4h"></span></div>
+      <div class="onb-p" data-t="onb4p"></div>
+    </div>
+  </div>
+  <div class="onb-foot">
+    <div class="onb-dots" id="onbDots"></div>
+    <button class="btn" id="onbNext" onclick="onbAdvance()"></button>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app" id="app" style="display:none">
+
+  <!-- generic top bar (hidden on AI screen) -->
+  <div class="topbar" id="topbar">
+    <div class="tb-brand"><div class="tb-logo">守</div><span class="tb-name" data-t="brand"></span></div>
+    <button class="lang-btn" id="langBtn" onclick="toggleLang()">EN</button>
+  </div>
+
+  <!-- ===== RECORD ===== -->
+  <div class="screen on" id="s-record">
+    <div class="eyebrow" data-t="rec_eye"></div>
+    <div class="h-title" data-t="rec_h"></div>
+    <div class="h-sub" data-t="rec_sub"></div>
+    <div class="enc">🔒 <span data-t="enc"></span></div>
+
+    <div class="cat-row" id="catRow">
+      <div class="cat on" data-c="work" onclick="pickCat(this)"><div class="ce">💼</div><div class="cn" data-t="cat_work"></div></div>
+      <div class="cat" data-c="family" onclick="pickCat(this)"><div class="ce">🏠</div><div class="cn" data-t="cat_family"></div></div>
+      <div class="cat" data-c="other" onclick="pickCat(this)"><div class="ce">💭</div><div class="cn" data-t="cat_other"></div></div>
+    </div>
+
+    <div class="card">
+      <div class="fsec">
+        <div class="flabel"><span data-t="f_type"></span></div>
+        <div class="chips" id="typeChips"></div>
+      </div>
+      <div class="fsec">
+        <div class="flabel"><span data-t="f_when"></span></div>
+        <div class="two" style="margin-bottom:9px">
+          <input type="date" class="inp" id="r-date">
+          <input type="time" class="inp" id="r-time">
+        </div>
+        <input class="inp" id="r-who" style="margin-bottom:9px" data-tph="ph_who">
+        <input class="inp" id="r-loc" data-tph="ph_loc">
+      </div>
+      <div class="fsec">
+        <div class="flabel"><span data-t="f_what"></span></div>
+        <textarea class="ta" id="r-desc" data-tph="ph_desc"></textarea>
+        <textarea class="ta" id="r-feel" style="min-height:64px;margin-top:9px" data-tph="ph_feel"></textarea>
+      </div>
+      <div class="fsec">
+        <div class="flabel"><span data-t="f_sev"></span></div>
+        <div class="sev3" id="sevGrid">
+          <div class="sev" data-s="low" onclick="pickSev(this)"><span class="se">🟡</span><span data-t="sev_low"></span></div>
+          <div class="sev" data-s="med" onclick="pickSev(this)"><span class="se">🟠</span><span data-t="sev_med"></span></div>
+          <div class="sev" data-s="high" onclick="pickSev(this)"><span class="se">🔴</span><span data-t="sev_high"></span></div>
+        </div>
+      </div>
+      <div class="fsec" id="evSec">
+        <div class="flabel"><span data-t="f_ev"></span></div>
+        <div class="evg" id="evGrid">
+          <div class="ev" data-e="screenshot" onclick="pickEv(this)"><span class="ee">📸</span><span data-t="ev_shot"></span></div>
+          <div class="ev" data-e="audio" onclick="pickEv(this)"><span class="ee">🎤</span><span data-t="ev_audio"></span></div>
+          <div class="ev" data-e="witness" onclick="pickEv(this)"><span class="ee">👥</span><span data-t="ev_witness"></span></div>
+          <div class="ev" data-e="file" onclick="pickEv(this)"><span class="ee">📄</span><span data-t="ev_file"></span></div>
+        </div>
+      </div>
+      <button class="btn" onclick="saveRec()">🔒 <span data-t="rec_save"></span></button>
+    </div>
+    <p style="text-align:center;font-size:11.5px;color:var(--muted);margin-top:12px" data-t="rec_foot"></p>
+  </div>
+
+  <!-- ===== TIMELINE ===== -->
+  <div class="screen" id="s-timeline">
+    <div class="eyebrow" data-t="tl_eye"></div>
+    <div class="h-title" data-t="tl_h"></div>
+    <div class="kpis">
+      <div class="kpi"><div class="kpi-n" id="k-t">0</div><div class="kpi-l" data-t="tl_k1"></div></div>
+      <div class="kpi"><div class="kpi-n" id="k-e">0</div><div class="kpi-l" data-t="tl_k2"></div></div>
+      <div class="kpi"><div class="kpi-n" id="k-p">—</div><div class="kpi-l" data-t="tl_k3"></div></div>
+    </div>
+    <div id="tlBody"></div>
+  </div>
+
+  <!-- ===== AI COACH ===== -->
+  <div class="screen" id="s-ai">
+    <div class="ai-wrap">
+      <div class="ai-top">
+        <div class="ai-av">🌿</div>
+        <div style="flex:1"><div class="ai-nm" data-t="ai_nm"></div><div class="ai-st" data-t="ai_st"></div></div>
+        <button class="lang-btn" onclick="toggleLang()">EN</button>
+      </div>
+      <div class="msgs" id="msgs"></div>
+      <div class="qr" id="qr"></div>
+      <div class="ai-foot">
+        <textarea class="ai-ta" id="ci" rows="1" data-tph="ai_ph" onkeydown="aiKey(event)" oninput="aiGrow(this)"></textarea>
+        <button class="ai-send" onclick="aiSend()">↑</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== CONSULT ===== -->
+  <div class="screen" id="s-consult">
+    <div class="eyebrow" data-t="con_eye"></div>
+    <div class="h-title" data-t="con_h"></div>
+    <div class="h-sub" data-t="con_sub"></div>
+    <div class="seg" id="conSeg">
+      <div class="seg-b on" data-r="lawyer" onclick="pickRole(this)" data-t="role_lawyer"></div>
+      <div class="seg-b" data-r="hr" onclick="pickRole(this)" data-t="role_hr"></div>
+      <div class="seg-b" data-r="emotion" onclick="pickRole(this)" data-t="role_emotion"></div>
+    </div>
+    <div id="exList"></div>
+    <div class="note" id="conNote"></div>
+  </div>
+
+  <!-- ===== ME ===== -->
+  <div class="screen" id="s-me">
+    <div class="eyebrow" data-t="me_eye"></div>
+    <div class="h-title" style="margin-bottom:16px" data-t="me_h"></div>
+
+    <div class="pro-card">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="font-family:var(--serif);font-size:18px;font-weight:700">守护 Pro</div>
+        <span class="pro-tag">PRO</span>
+      </div>
+      <div class="pro-feats">
+        <div class="pro-feat" data-t="pro_f1"></div>
+        <div class="pro-feat" data-t="pro_f2"></div>
+        <div class="pro-feat" data-t="pro_f3"></div>
+      </div>
+      <button class="btn" style="background:#fff;color:var(--ink)" onclick="openPro()"><span data-t="pro_cta"></span></button>
+    </div>
+
+    <div class="card">
+      <div class="me-row" onclick="openPaywall()"><span data-t="me_export"></span><span class="mr-r">¥39 →</span></div>
+      <div class="me-row" onclick="go('consult')"><span data-t="me_consult"></span><span class="mr-r">→</span></div>
+      <div class="me-row" onclick="toggleLang()"><span data-t="me_lang"></span><span class="mr-r" id="meLang">中文 / EN</span></div>
+      <div class="me-row" onclick="showAbout()"><span data-t="me_about"></span><span class="mr-r">→</span></div>
+    </div>
+    <p style="text-align:center;font-size:11px;color:var(--muted);margin-top:20px;line-height:1.6" data-t="me_disc"></p>
+  </div>
+
+  <!-- TAB BAR -->
+  <div class="tabbar">
+    <button class="tab" data-g="timeline" onclick="go('timeline')"><span class="ti">📚</span><span class="tl" data-t="tab_tl"></span></button>
+    <button class="tab" data-g="ai" onclick="go('ai')"><span class="ti">🌿</span><span class="tl" data-t="tab_ai"></span></button>
+    <button class="tab rec on" data-g="record" onclick="go('record')"><span class="ti">＋</span><span class="tl" data-t="tab_rec"></span></button>
+    <button class="tab" data-g="consult" onclick="go('consult')"><span class="ti">💬</span><span class="tl" data-t="tab_con"></span></button>
+    <button class="tab" data-g="me" onclick="go('me')"><span class="ti">👤</span><span class="tl" data-t="tab_me"></span></button>
+  </div>
+</div>
+
+<!-- PAYWALL SHEET (¥39 维权包) -->
+<div class="ov" id="ovPay">
+  <div class="sheet">
+    <button class="close-x" onclick="closeSheet('ovPay')">×</button>
+    <div style="text-align:center;font-size:34px;margin-bottom:6px">⚖️</div>
+    <h3 style="text-align:center" data-t="pw_h"></h3>
+    <p class="sd" style="text-align:center" data-t="pw_sub"></p>
+    <div style="text-align:center;margin-bottom:18px"><span class="price-big" id="pwPrice">¥39</span><span class="price-old" id="pwOld">¥99</span></div>
+    <div style="background:var(--warm);border-radius:14px;padding:14px 16px;margin-bottom:16px">
+      <div class="pk-feat"><span class="ic">📄</span><span data-t="pw_f1"></span></div>
+      <div class="pk-feat"><span class="ic">✉️</span><span data-t="pw_f2"></span></div>
+      <div class="pk-feat"><span class="ic">🧭</span><span data-t="pw_f3"></span></div>
+      <div class="pk-feat"><span class="ic">👩‍⚖️</span><span data-t="pw_f4"></span></div>
+    </div>
+    <button class="btn" onclick="mockPay('pack')"><span data-t="pw_cta"></span></button>
+    <p style="text-align:center;font-size:11px;color:var(--muted);margin-top:10px" data-t="pw_note"></p>
+  </div>
+</div>
+
+<!-- PRO SHEET (¥20/mo) -->
+<div class="ov" id="ovPro">
+  <div class="sheet">
+    <button class="close-x" onclick="closeSheet('ovPro')">×</button>
+    <div style="text-align:center;font-size:34px;margin-bottom:6px">✨</div>
+    <h3 style="text-align:center">守护 Pro</h3>
+    <p class="sd" style="text-align:center" data-t="pro_sub"></p>
+    <div style="text-align:center;margin-bottom:18px"><span class="price-big" id="proPrice">¥20</span><span style="font-size:14px;color:var(--muted)" data-t="pro_mo"></span></div>
+    <div style="background:var(--warm);border-radius:14px;padding:14px 16px;margin-bottom:16px">
+      <div class="pk-feat"><span class="ic">🌿</span><span data-t="pro_l1"></span></div>
+      <div class="pk-feat"><span class="ic">☁️</span><span data-t="pro_l2"></span></div>
+      <div class="pk-feat"><span class="ic">⚡</span><span data-t="pro_l3"></span></div>
+    </div>
+    <button class="btn" onclick="mockPay('pro')"><span data-t="pro_cta2"></span></button>
+  </div>
+</div>
+
+<!-- LETTER SHEET (律师函 preview → paywall) -->
+<div class="ov" id="ovLetter">
+  <div class="sheet">
+    <button class="close-x" onclick="closeSheet('ovLetter')">×</button>
+    <h3 data-t="lt_h"></h3>
+    <p class="sd" data-t="lt_sub"></p>
+    <div class="letter locked" id="letterBody"></div>
+    <button class="btn" style="margin-top:16px" onclick="closeSheet('ovLetter');openPaywall()"><span data-t="lt_cta"></span> · ¥39</button>
+  </div>
+</div>
+
+<!-- BOOK SHEET -->
+<div class="ov" id="ovBook">
+  <div class="sheet">
+    <button class="close-x" onclick="closeSheet('ovBook')">×</button>
+    <h3 id="bookName"></h3>
+    <p class="sd" id="bookDesc"></p>
+    <input class="cf-inp" id="bk-name" data-tph="bk_name">
+    <input class="cf-inp" id="bk-contact" data-tph="bk_contact">
+    <textarea class="cf-inp" id="bk-note" style="min-height:60px;resize:none" data-tph="bk_note"></textarea>
+    <button class="btn" onclick="submitBook()"><span data-t="bk_submit"></span></button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============ i18n ============ */
+const I18N={
+zh:{
+ brand:'职场守护',
+ onb1h:'被欺负了，<span class="hl">别自己扛</span>。',
+ onb1p:'职场被 PUA、欠薪、被排挤，或是家里那些说不出口的委屈——你需要一个只属于你的地方。',
+ onb2h:'每天记一条，<span class="hl">出口气</span>。',
+ onb2p:'每天回家前，把坏情绪倒在这，别带回家。今天为了解气记的，攒着攒着，就成了保护你的证据。',
+ onb2r1:'会议上被当众否定',onb2r2:'被移出项目群',onb2r3:'在家又不被理解',
+ onb3h:'AI 教练<span class="hl">陪你平复</span>，还给你建议。',
+ onb3p:'不用再把情绪倒给朋友。AI 24 小时在，先接住你、帮你顺气，再告诉你怎么办——把情绪说出来，本身就是对身心的照顾。',
+ onb4h:'攒着攒着，<span class="hl">就是你的证据</span>。',
+ onb4p:'需要维权时，一键生成仲裁级证据报告和给公司的律师函，或直接对接真人律师、HR、情感老师。',
+ onb_next:'下一步',onb_start:'开始使用',skip:'跳过',
+ /* tabs */
+ tab_tl:'记录',tab_ai:'AI教练',tab_rec:'记一条',tab_con:'咨询',tab_me:'我的',
+ /* record */
+ rec_eye:'新建记录',rec_h:'发生了什么？',rec_sub:'趁记忆还清晰，把细节记下来。细节越多，证据越有力。',
+ enc:'只存在你手机上 · 仅你可见',
+ cat_work:'职场',cat_family:'家庭',cat_other:'其他憋屈',
+ f_type:'① 类型（可多选）',f_when:'② 时间与人物',f_what:'③ 发生了什么',f_sev:'④ 严重程度',f_ev:'⑤ 你有的证据',
+ ph_who:'涉事人（例：直属上级 张某）',ph_loc:'地点（例：会议室 / 家里 / 微信群）',
+ ph_desc:'用你自己的话描述。对方说了什么、做了什么、谁在场……越详细越好。',
+ ph_feel:'你的感受（可选）：委屈、愤怒、失眠……写下来也是心理影响的记录。',
+ sev_low:'较轻',sev_med:'中等',sev_high:'严重',
+ ev_shot:'截图',ev_audio:'录音',ev_witness:'证人',ev_file:'文件',
+ rec_save:'加密保存这一条',rec_foot:'🔐 数据只存在你的手机上',
+ /* timeline */
+ tl_eye:'证据时间线',tl_h:'我的记录',tl_k1:'条数',tl_k2:'有证据',tl_k3:'完整度',
+ empty_t:'还没有任何记录',empty_s:'今天有什么让你憋屈的事？记下来，出口气。',empty_c:'＋ 记第一条',
+ tl_export:'导出证据报告 / 律师函',tl_advice_lo:'再记几条，就能建立完整的证据链',tl_advice_hi:'你已有足够记录，可以考虑维权或咨询律师了',
+ /* ai */
+ ai_nm:'守护 · AI 教练',ai_st:'在线 · 24小时陪你',ai_ph:'说说你的情况……',
+ ai_hi:'我在。\n\n今天发生了什么？慢慢说，没有评判，只有倾听。不管是刚发生的，还是憋了很久的，都可以。🌿',
+ ai_qr1:'刚被欺负了',ai_qr2:'这算霸凌吗',ai_qr3:'我该怎么办',ai_qr4:'去记一条',
+ /* consult */
+ con_eye:'真人咨询',con_h:'找个人聊聊',con_sub:'资质验证的专业人士。首次 30 分钟免费，之后付费咨询。',
+ role_lawyer:'律师',role_hr:'公司HR',role_emotion:'情感老师',
+ con_note:'平台收取咨询费的 20% 作为服务费，其余归专业人士。通话内容加密，平台不存储。紧急法律援助可拨 12348。',
+ book:'预约',ex_free:'首次30分钟免费',
+ /* me */
+ me_eye:'我的',me_h:'账户',
+ pro_f1:'AI 教练不限量，深度维权建议',pro_f2:'云端加密备份，换手机不丢',pro_f3:'律师 / 情感老师优先匹配',pro_cta:'升级守护 Pro · ¥20/月',
+ me_export:'导出证据报告 / 律师函',me_consult:'找律师 / HR / 情感老师',me_lang:'语言 Language',me_about:'关于与隐私',
+ me_disc:'本工具仅帮助你整理与记录，不构成法律意见。维权决策请咨询执业律师。',
+ /* paywall */
+ pw_h:'解锁维权包',pw_sub:'把你攒的记录，一键变成能用的东西',
+ pw_f1:'导出《证据时间线报告》PDF，可直接用于劳动仲裁',
+ pw_f2:'AI 生成《致公司/领导的律师函·投诉信》',
+ pw_f3:'专属维权路径规划：找哪个部门、准备什么材料',
+ pw_f4:'一键对接平台合作律师（首次免费）',
+ pw_cta:'¥39 一次性解锁（永久）',pw_note:'一次买断这份案卷 · 非订阅 · 记录永久免费',
+ /* pro sheet */
+ pro_sub:'给需要长期支持的你',pro_mo:'/月',
+ pro_l1:'AI 教练不限量 + 深度维权建议',pro_l2:'云端加密备份',pro_l3:'优先律师 / 情感老师匹配',pro_cta2:'开通 Pro · ¥20/月',
+ /* letter */
+ lt_h:'律师函已生成（预览）',lt_sub:'基于你的记录自动起草。解锁后可复制全文并导出。',
+ lt_cta:'解锁完整律师函',
+ /* book */
+ bk_name:'你的称呼',bk_contact:'微信号 / 手机号',bk_note:'简单描述你的情况（可选）',bk_submit:'提交预约',
+ /* misc */
+ saved:'✓ 已加密保存',need_desc:'⚠️ 请先写下发生了什么',need_type:'⚠️ 请选一个类型',
+ booked:'✓ 预约成功，对方会尽快联系你',paid_pack:'✓ 已解锁维权包（演示）',paid_pro:'✓ 已开通 Pro（演示）',
+ need_book:'⚠️ 请填写称呼和联系方式',
+ about_txt:'职场守护 · 一个帮你记录委屈、攒下证据、连接专业帮助的地方。数据默认只存在你的设备，你随时可以删除。',
+},
+en:{
+ brand:'Guardian',
+ onb1h:'Being mistreated? <span class="hl">You don\'t have to carry it alone.</span>',
+ onb1p:'Workplace bullying, unpaid wages, being pushed out — or the grievances at home you can\'t say out loud. You deserve a place that\'s just yours.',
+ onb2h:'One entry a day. <span class="hl">Let it out.</span>',
+ onb2p:'Dump the bad mood here before you head home — don\'t carry it back. What you log to vent today becomes the evidence that protects you tomorrow.',
+ onb2r1:'Shot down in the meeting',onb2r2:'Removed from the project chat',onb2r3:'Passed over for the promotion',
+ onb3h:'An AI coach to <span class="hl">calm you down</span> — and advise you.',
+ onb3p:'Stop dumping your stress on friends. The AI is here 24/7 — it holds space for you, helps you settle, then tells you what to do. Letting it out is itself good for your mind and body.',
+ onb4h:'It adds up into <span class="hl">your evidence</span>.',
+ onb4p:'When you\'re ready, generate an arbitration-ready evidence report and a formal letter to your employer — or connect with a real lawyer, HR advisor, or coach.',
+ onb_next:'Next',onb_start:'Get started',skip:'Skip',
+ tab_tl:'Records',tab_ai:'Coach',tab_rec:'Log',tab_con:'Consult',tab_me:'Me',
+ rec_eye:'New entry',rec_h:'What happened?',rec_sub:'Capture it while it\'s fresh. The more detail, the stronger the evidence.',
+ enc:'Stays on your phone · only you can see it',
+ cat_work:'Work',cat_family:'Family',cat_other:'Other',
+ f_type:'① Type (multi-select)',f_when:'② When & who',f_what:'③ What happened',f_sev:'④ Severity',f_ev:'⑤ Evidence you have',
+ ph_who:'Who was involved (e.g. my manager)',ph_loc:'Where (e.g. meeting room / group chat)',
+ ph_desc:'Describe it in your words. What they said, what they did, who was there… the more detail the better.',
+ ph_feel:'How you felt (optional): hurt, angry, couldn\'t sleep… this documents the emotional impact.',
+ sev_low:'Mild',sev_med:'Medium',sev_high:'Severe',
+ ev_shot:'Screenshot',ev_audio:'Audio',ev_witness:'Witness',ev_file:'File',
+ rec_save:'Save this entry',rec_foot:'🔐 Stored only on your device',
+ tl_eye:'Evidence timeline',tl_h:'My records',tl_k1:'Entries',tl_k2:'With proof',tl_k3:'Strength',
+ empty_t:'No records yet',empty_s:'What got under your skin today? Write it down and let it out.',empty_c:'＋ Add your first entry',
+ tl_export:'Export evidence report / letter',tl_advice_lo:'A few more entries builds a solid chain of evidence',tl_advice_hi:'You have enough on record — consider acting or consulting a lawyer',
+ ai_nm:'Guardian · AI Coach',ai_st:'Online · here 24/7',ai_ph:'Tell me what\'s going on…',
+ ai_hi:'I\'m here.\n\nWhat happened today? Take your time — no judgment, just listening. Whether it just happened or you\'ve held it in for a while. 🌿',
+ ai_qr1:'Just got mistreated',ai_qr2:'Is this bullying?',ai_qr3:'What should I do',ai_qr4:'Log an entry',
+ con_eye:'Talk to a human',con_h:'Get real support',con_sub:'Verified professionals. First 30 min free, paid after that.',
+ role_lawyer:'Lawyer',role_hr:'HR advisor',role_emotion:'Coach',
+ con_note:'The platform takes 20% of the consult fee as a service fee; the rest goes to the professional. Calls are encrypted and not stored.',
+ book:'Book',ex_free:'First 30 min free',
+ me_eye:'Me',me_h:'Account',
+ pro_f1:'Unlimited AI coach + deep advice',pro_f2:'Encrypted cloud backup',pro_f3:'Priority lawyer / coach matching',pro_cta:'Upgrade to Pro · $4.99/mo',
+ me_export:'Export evidence report / letter',me_consult:'Find a lawyer / HR / coach',me_lang:'Language 语言',me_about:'About & privacy',
+ me_disc:'This tool helps you organize and record only; it is not legal advice. Consult a licensed lawyer for decisions.',
+ pw_h:'Unlock the Action Pack',pw_sub:'Turn everything you\'ve logged into something you can use',
+ pw_f1:'Export an evidence-timeline PDF, ready for arbitration/HR',
+ pw_f2:'AI-drafted formal letter to your employer',
+ pw_f3:'A personalized action plan: who to contact, what to prepare',
+ pw_f4:'One-tap connection to a partner lawyer (first consult free)',
+ pw_cta:'Unlock for $6.99 (one-time)',pw_note:'One-time purchase for this case file · not a subscription · logging is always free',
+ pro_sub:'For when you need ongoing support',pro_mo:'/mo',
+ pro_l1:'Unlimited AI coach + deep advice',pro_l2:'Encrypted cloud backup',pro_l3:'Priority matching',pro_cta2:'Start Pro · $4.99/mo',
+ lt_h:'Your letter is drafted (preview)',lt_sub:'Auto-drafted from your records. Unlock to copy and export the full text.',
+ lt_cta:'Unlock full letter',
+ bk_name:'Your name',bk_contact:'Phone / WeChat / email',bk_note:'Briefly describe your situation (optional)',bk_submit:'Request booking',
+ saved:'✓ Saved & encrypted',need_desc:'⚠️ Please write what happened first',need_type:'⚠️ Pick a type',
+ booked:'✓ Booked — they\'ll reach out soon',paid_pack:'✓ Action Pack unlocked (demo)',paid_pro:'✓ Pro activated (demo)',
+ need_book:'⚠️ Please fill in your name and contact',
+ about_txt:'Guardian — a place to record what you go through, build up evidence, and reach real help. Your data lives on your device by default and you can delete it anytime.',
+},
+};
+let LANG=localStorage.zg_lang||'zh';
+
+/* type chips per category */
+const TYPES={
+ work:{zh:['言语贬低','当众羞辱','孤立排挤','工作打压','骚扰威胁','克扣薪资','强制加班','其他'],
+       en:['Verbal abuse','Public humiliation','Exclusion','Work sabotage','Harassment','Unpaid wages','Forced overtime','Other']},
+ family:{zh:['被指责','冷暴力','当众数落','翻旧账','经济控制','不被尊重','其他'],
+        en:['Blamed','Silent treatment','Put down in public','Old grudges','Financial control','Disrespect','Other']},
+ other:{zh:['被欺负','被辜负','憋屈','愤怒','委屈','其他'],
+        en:['Bullied','Let down','Frustrated','Angry','Hurt','Other']},
+};
+
+/* experts */
+const EXPERTS=[
+ {r:'lawyer',emoji:'👩‍⚖️',bg:'#EFF6FF',zn:'王丽娜',en:'Lin Wang',zr:'劳动法律师 · 12年',er:'Employment lawyer · 12y',zd:'专注劳动争议仲裁诉讼，代理300+案件，擅长职场霸凌、违法辞退、薪资纠纷。',ed:'Labor dispute arbitration & litigation, 300+ cases: bullying, wrongful termination, wage claims.',zt:['劳动仲裁','违法辞退','薪资纠纷'],et:['Arbitration','Wrongful termination','Wage claims'],p:'¥299',ep:'$120',badge:'★4.9',bb:'#FFF7ED',bc:'#D97706'},
+ {r:'lawyer',emoji:'👨‍⚖️',bg:'#F0FDF4',zn:'陈建国',en:'Jason Chen',zr:'劳动法律师 · 8年',er:'Employment lawyer · 8y',zd:'处理集体劳动纠纷和个人维权，熟悉各地仲裁实务，胜诉率85%以上。',ed:'Collective & individual labor disputes, 85%+ win rate.',zt:['集体仲裁','经济补偿','劳动合同'],et:['Class claims','Severance','Contracts'],p:'¥199',ep:'$90',badge:'★4.8',bb:'#F0FDF4',bc:'#16A34A'},
+ {r:'hr',emoji:'🧑‍💼',bg:'#FFF7ED',zn:'孙晓明',en:'Grace Sun',zr:'资深HR顾问 · 15年',er:'Senior HR advisor · 15y',zd:'前500强HR总监。教你怎么走内部投诉、谈离职方案、争取 N+1，最大化保护权益。',ed:'Ex-Fortune 500 HR director. Internal complaints, exit packages, negotiating severance.',zt:['内部投诉','离职方案','N+1谈判'],et:['Internal complaint','Exit plan','Severance nego'],p:'¥120',ep:'$60',badge:'★4.8',bb:'#FFF7ED',bc:'#D97706'},
+ {r:'emotion',emoji:'🧑‍⚕️',bg:'#FAF5FF',zn:'张晓雯',en:'Vera Zhang',zr:'情感老师 · 10年',er:'Relationship coach · 10y',zd:'专注职场与家庭情绪、亲密关系、焦虑疏导，擅长认知行为疗法（CBT）。',ed:'Workplace & family emotions, relationships, anxiety. CBT-trained.',zt:['情绪疏导','家庭关系','焦虑'],et:['Emotional support','Family','Anxiety'],p:'¥180',ep:'$70',badge:'★4.9',bb:'#FAF5FF',bc:'#7C3AED'},
+ {r:'emotion',emoji:'👨‍⚕️',bg:'#ECFDF5',zn:'李明阳',en:'Leo Li',zr:'情感老师 · 7年',er:'Relationship coach · 7y',zd:'企业员工心理援助（EAP）经验丰富，帮你走出困境、重建自信。',ed:'EAP background — helping you recover confidence and move forward.',zt:['自信重建','情绪疏导','职业规划'],et:['Confidence','Support','Career'],p:'¥150',ep:'$65',badge:'★4.7',bb:'#ECFDF5',bc:'#16A34A'},
+];
+
+/* ============ STATE ============ */
+let recs=JSON.parse(localStorage.zg_recs||'[]');
+let curCat='work',sTypes=[],sSev=null,sEv=[];
+let aiStep=0;
+const t=k=>I18N[LANG][k]||k;
+
+/* ============ i18n apply ============ */
+function applyLang(){
+  document.documentElement.lang=LANG==='zh'?'zh-CN':'en';
+  document.querySelectorAll('[data-t]').forEach(el=>{el.innerHTML=t(el.dataset.t);});
+  document.querySelectorAll('[data-tph]').forEach(el=>{el.placeholder=t(el.dataset.tph);});
+  document.querySelectorAll('.lang-btn').forEach(b=>b.textContent=LANG==='zh'?'EN':'中');
+  // onboarding button label
+  const nb=document.getElementById('onbNext');if(nb)nb.textContent=onbIdx>=3?t('onb_start'):t('onb_next');
+  const sk=document.getElementById('onbSkip');if(sk)sk.textContent=t('skip');
+  renderTypeChips();
+  if(document.getElementById('s-timeline').classList.contains('on'))renderTL();
+  if(document.getElementById('s-consult').classList.contains('on'))renderExperts();
+  document.getElementById('conNote')&&(document.getElementById('conNote').textContent=t('con_note'));
+}
+function toggleLang(){LANG=LANG==='zh'?'en':'zh';localStorage.zg_lang=LANG;applyLang();}
+
+/* ============ ONBOARDING ============ */
+let onbIdx=0;
+function buildDots(){const d=document.getElementById('onbDots');d.innerHTML='';for(let i=0;i<4;i++){const s=document.createElement('div');s.className='onb-dot'+(i===onbIdx?' on':'');d.appendChild(s);}}
+function onbAdvance(){if(onbIdx>=3){finishOnb();return;}onbIdx++;document.getElementById('onbTrack').style.transform=`translateX(-${onbIdx*100}%)`;buildDots();document.getElementById('onbNext').textContent=onbIdx>=3?t('onb_start'):t('onb_next');}
+function finishOnb(){localStorage.zg_onboarded='1';document.getElementById('onb').style.display='none';document.getElementById('app').style.display='block';go('ai');}
+
+/* ============ NAV ============ */
+function go(p){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
+  document.getElementById('s-'+p).classList.add('on');
+  document.querySelectorAll('.tab').forEach(tb=>tb.classList.toggle('on',tb.dataset.g===p));
+  // AI screen is full-height, hide global top bar
+  document.getElementById('topbar').style.display = p==='ai' ? 'none':'flex';
+  window.scrollTo(0,0);
+  if(p==='timeline')renderTL();
+  if(p==='consult')renderExperts();
+  if(p==='ai'&&!aiStep&&document.getElementById('msgs').children.length===0)aiInit();
+}
+
+/* ============ RECORD ============ */
+function renderTypeChips(){
+  const box=document.getElementById('typeChips');if(!box)return;
+  const list=TYPES[curCat][LANG];
+  box.innerHTML=list.map((v,i)=>`<div class="chip${sTypes.includes(TYPES[curCat].zh[i])?' on':''}" data-i="${i}" onclick="tc(this)">${v}</div>`).join('');
+}
+function pickCat(el){document.querySelectorAll('.cat').forEach(c=>c.classList.remove('on'));el.classList.add('on');curCat=el.dataset.c;sTypes=[];renderTypeChips();
+  // family/other: evidence less relevant but keep optional
+}
+function tc(el){const i=+el.dataset.i;const key=TYPES[curCat].zh[i];el.classList.toggle('on');sTypes=el.classList.contains('on')?[...sTypes,key]:sTypes.filter(x=>x!==key);}
+function pickSev(el){document.querySelectorAll('.sev').forEach(s=>s.classList.remove('on'));el.classList.add('on');sSev=el.dataset.s;}
+function pickEv(el){el.classList.toggle('on');const v=el.dataset.e;sEv=el.classList.contains('on')?[...sEv,v]:sEv.filter(x=>x!==v);}
+function saveRec(){
+  const desc=document.getElementById('r-desc').value.trim();
+  if(!desc){toast(t('need_desc'));return;}
+  const types=sTypes.length?[...sTypes]:['其他'];
+  recs.unshift({id:Date.now(),cat:curCat,types,who:val('r-who'),loc:val('r-loc'),
+    date:document.getElementById('r-date').value||new Date().toISOString().slice(0,10),
+    time:document.getElementById('r-time').value,desc,feel:val('r-feel'),sev:sSev||'med',ev:[...sEv]});
+  localStorage.zg_recs=JSON.stringify(recs);
+  ['r-who','r-loc','r-desc','r-feel'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('r-date').valueAsDate=new Date();document.getElementById('r-time').value='';
+  document.querySelectorAll('.chip.on,.sev.on,.ev.on').forEach(c=>c.classList.remove('on'));
+  sTypes=[];sSev=null;sEv=[];
+  toast(t('saved'));
+  setTimeout(()=>go('timeline'),900);
+}
+const val=id=>document.getElementById(id).value.trim();
+
+/* ============ TIMELINE ============ */
+const SC={low:'#B45309',med:'#D97706',high:'#C13B2A'};
+function typeLabel(zhKey){ // map stored zh type to current lang label
+  for(const c in TYPES){const i=TYPES[c].zh.indexOf(zhKey);if(i>=0)return TYPES[c][LANG][i];}
+  return zhKey;
+}
+function renderTL(){
+  const n=recs.length,we=recs.filter(r=>r.ev.length).length;
+  const pct=n?Math.round(recs.reduce((a,r)=>{let s=40;if(r.ev.length)s+=28;if(r.who)s+=16;if(r.loc)s+=16;return a+Math.min(s,100);},0)/n):0;
+  document.getElementById('k-t').textContent=n;
+  document.getElementById('k-e').textContent=we;
+  document.getElementById('k-p').textContent=n?pct+'%':'—';
+  const body=document.getElementById('tlBody');
+  if(!n){body.innerHTML=`<div class="empty"><div class="empty-e">🛡️</div><div class="empty-t">${t('empty_t')}</div><div class="empty-s">${t('empty_s')}</div><button class="btn btn-sm" style="margin:0 auto" onclick="go('record')">${t('empty_c')}</button></div>`;return;}
+  const items=recs.map(r=>{const c=SC[r.sev]||SC.med;
+    const tags=[...r.types.map(x=>`<span class="tt tt-t">${typeLabel(x)}</span>`),
+      ...r.ev.map(e=>`<span class="tt tt-e">📎</span>`),
+      r.sev==='high'?`<span class="tt tt-h">${t('sev_high')}</span>`:''].filter(Boolean).join('');
+    return `<div class="tl-item"><div class="tl-stem"><div class="tl-dot" style="background:${c};box-shadow:0 0 0 3px var(--bg),0 0 0 5px ${c}44"></div><div class="tl-con"></div></div>
+     <div class="tl-card"><div class="tl-ch"><div class="tl-ct">${typeLabel(r.types[0])}</div><div class="tl-cm">${r.date}${r.time?' '+r.time:''}</div></div>
+     <div class="tl-cd">${r.desc.length>120?r.desc.slice(0,120)+'…':r.desc}</div><div class="tl-tags">${tags}</div></div></div>`;}).join('');
+  const advice=n>=3?t('tl_advice_hi'):t('tl_advice_lo');
+  body.innerHTML=`<div class="card" style="margin-bottom:16px">
+      <div style="font-family:var(--serif);font-weight:600;font-size:15px">${t('tl_k3')}</div>
+      <div class="prog-wrap"><div class="prog-fill" style="width:${pct}%"></div></div>
+      <div style="font-size:12px;color:var(--muted)">${advice}</div>
+      <button class="btn" style="margin-top:14px" onclick="openPaywall()">📤 ${t('tl_export')}</button>
+    </div>${items}`;
+}
+
+/* ============ AI COACH ============ */
+function aiInit(){
+  document.getElementById('msgs').innerHTML='';
+  addMsg('ai',t('ai_hi'));
+  setQR([t('ai_qr1'),t('ai_qr2'),t('ai_qr3'),t('ai_qr4')]);
+}
+const aiFlow={
+ zh:[
+  x=>`听到你说这些，我先想停一下问你——你现在还好吗？\n\n你说的这些，真的很让人难受。被这样对待，不是你的错。\n\n这是第一次，还是已经持续一阵了？`,
+  ()=>`反复的、针对性的伤害，无论在职场还是家里，都更值得被认真对待。\n\n我想先帮你把情绪放下来一点。深呼吸一下。\n\n然后我们一起看：这件事里，最让你难受的是哪一点？`,
+  ()=>`谢谢你愿意说出来。你的感受完全成立。\n\n我给你两个建议：\n① **先记一条**——趁现在记忆清晰，把它写进记录里（这是保护你的第一步）。\n② 如果反复发生，别一个人扛。`,
+ ],
+ en:[
+  x=>`I want to pause and ask first — are you okay right now?\n\nWhat you're describing is genuinely hard. Being treated this way is not your fault.\n\nIs this the first time, or has it been going on for a while?`,
+  ()=>`Repeated, targeted harm — at work or at home — deserves to be taken seriously.\n\nLet's ease the feeling down a little first. Take a breath.\n\nThen, together: what part of this hurts the most?`,
+  ()=>`Thank you for saying it out loud. Your feelings are completely valid.\n\nTwo suggestions:\n① **Log an entry now**, while it's fresh — it's the first step to protecting yourself.\n② If it keeps happening, don't carry it alone.`,
+ ],
+};
+function aiSend(){
+  const el=document.getElementById('ci'),v=el.value.trim();if(!v)return;
+  el.value='';el.style.height='auto';addMsg('usr',v);clearQR();showTyping();
+  setTimeout(()=>{hideTyping();
+    const flow=aiFlow[LANG];const r=flow[Math.min(aiStep,flow.length-1)](v);aiStep++;addMsg('ai',r);
+    if(aiStep>=flow.length){if(recs.length>=2){setTimeout(()=>aiUpsell(),500);}else{setTimeout(()=>setQR([t('ai_qr4')]),400);}}
+    else setTimeout(()=>setQR([t('ai_qr4')]),400);
+  },1100+Math.random()*500);
+}
+function aiUpsell(){
+  const w=document.getElementById('msgs');
+  const d=document.createElement('div');d.className='cm ai';
+  const zh=LANG==='zh';
+  d.innerHTML=`<div class="up-inline"><h4>${zh?'想要具体的维权建议？':'Want concrete next-step advice?'}</h4>
+    <p>${zh?'免费版帮你顺气；要「怎么维权、写律师函、找哪个部门」这种具体行动方案，属于维权包。':'The free coach helps you settle. Concrete action — how to act, a formal letter, who to contact — is in the Action Pack.'}</p>
+    <button class="btn" style="background:#fff;color:var(--ink)" onclick="openLetter()">${zh?'✉️ 帮我写给公司的律师函':'✉️ Draft my letter to the employer'}</button></div>`;
+  w.appendChild(d);w.scrollTop=w.scrollHeight;
+}
+function setQR(items){const q=document.getElementById('qr');q.innerHTML=items.map(x=>`<button class="qrb" onclick="qrClick(this)">${x}</button>`).join('');}
+function clearQR(){document.getElementById('qr').innerHTML='';}
+function qrClick(el){const x=el.textContent;
+  if(x===t('ai_qr4')){clearQR();addMsg('usr',x);showTyping();setTimeout(()=>{hideTyping();addMsg('ai',LANG==='zh'?'好，我陪你去记。把刚才的事写下来，越细越好 💪':'Okay, I\'ll go with you. Write it down in detail 💪');setTimeout(()=>go('record'),900);},700);return;}
+  document.getElementById('ci').value=x;aiSend();
+}
+function addMsg(role,text){const w=document.getElementById('msgs');const now=new Date().toLocaleTimeString(LANG==='zh'?'zh-CN':'en-US',{hour:'2-digit',minute:'2-digit'});const d=document.createElement('div');d.className='cm '+role;d.innerHTML=`<div class="cb">${text.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')}</div><div class="ct">${now}</div>`;w.appendChild(d);w.scrollTop=w.scrollHeight;}
+let typEl=null;
+function showTyping(){const w=document.getElementById('msgs');typEl=document.createElement('div');typEl.className='cm ai';typEl.innerHTML='<div class="typing"><div class="td"></div><div class="td"></div><div class="td"></div></div>';w.appendChild(typEl);w.scrollTop=w.scrollHeight;}
+function hideTyping(){if(typEl){typEl.remove();typEl=null;}}
+function aiKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();aiSend();}}
+function aiGrow(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,110)+'px';}
+
+/* ============ CONSULT ============ */
+let curRole='lawyer';
+function pickRole(el){document.querySelectorAll('.seg-b').forEach(b=>b.classList.remove('on'));el.classList.add('on');curRole=el.dataset.r;renderExperts();}
+function renderExperts(){
+  const list=EXPERTS.filter(e=>e.r===curRole);
+  document.getElementById('exList').innerHTML=list.map((e,i)=>{
+    const nm=LANG==='zh'?e.zn:e.en,ro=LANG==='zh'?e.zr:e.er,de=LANG==='zh'?e.zd:e.ed,tags=LANG==='zh'?e.zt:e.et,price=LANG==='zh'?e.p:e.ep;
+    return `<div class="ex-card"><div class="ex-top"><div class="ex-av" style="background:${e.bg}">${e.emoji}</div>
+      <div style="flex:1"><div class="ex-nm">${nm}</div><div class="ex-ro">${ro}</div>
+      <span class="ex-badge" style="background:${e.bb};color:${e.bc}">${e.badge}</span>
+      <span class="ex-badge" style="background:#f0fdf4;color:#16a34a">${t('ex_free')}</span></div></div>
+      <div class="ex-desc">${de}</div>
+      <div class="ex-tags">${tags.map(x=>`<span class="ex-tag">${x}</span>`).join('')}</div>
+      <div class="ex-bot"><div class="ex-price">${t('ex_free')}<br><strong>${price}${LANG==='zh'?'/小时':'/hr'}</strong></div>
+      <button class="btn btn-sm" onclick="openBook(${EXPERTS.indexOf(e)})">${t('book')}</button></div></div>`;
+  }).join('');
+  document.getElementById('conNote').textContent=t('con_note');
+}
+let bookExpert=null;
+function openBook(idx){bookExpert=EXPERTS[idx];const nm=LANG==='zh'?bookExpert.zn:bookExpert.en,ro=LANG==='zh'?bookExpert.zr:bookExpert.er;
+  document.getElementById('bookName').textContent=(LANG==='zh'?'预约 · ':'Book · ')+nm;
+  document.getElementById('bookDesc').textContent=ro+' · '+t('ex_free');
+  openSheet('ovBook');}
+function submitBook(){const n=val('bk-name'),c=val('bk-contact');if(!n||!c){toast(t('need_book'));return;}
+  ['bk-name','bk-contact','bk-note'].forEach(id=>document.getElementById(id).value='');closeSheet('ovBook');toast(t('booked'));}
+
+/* ============ PAYWALL / LETTER ============ */
+function openPaywall(){openSheet('ovPay');}
+function openPro(){openSheet('ovPro');}
+function showAbout(){toast(t('about_txt'));}
+function openLetter(){
+  buildLetter();openSheet('ovLetter');
+}
+function buildLetter(){
+  const r=recs[0];const zh=LANG==='zh';
+  const cnt=recs.length;
+  const body= zh ?
+`致 XX公司 人力资源部 / 相关负责人：
+
+本人现就近期在工作中遭遇的不当对待，正式提出书面交涉。
+
+自 ${r?r.date:'____'} 起，本人持续遭遇以下情形，已逐条记录在案（共 ${cnt} 条，含时间、地点、在场人员及证据）：
+
+${recs.slice(0,3).map((x,i)=>`${i+1}. ${x.date} ${typeLabel(x.types[0])}：${x.desc.slice(0,40)}…`).join('\n')}
+
+上述行为已涉嫌违反《劳动合同法》《劳动法》相关规定。本人现要求公司在 15 日内就此作出书面回应并纠正……
+
+（解锁后可查看完整函件，含法条引用、诉求金额与落款）`
+:
+`To: HR Department / Responsible Manager,
+
+I am writing to formally raise concerns regarding recent mistreatment in the workplace.
+
+Since ${r?r.date:'____'}, I have experienced the following, each documented (${cnt} entries with date, place, witnesses and evidence):
+
+${recs.slice(0,3).map((x,i)=>`${i+1}. ${x.date} — ${typeLabel(x.types[0])}: ${x.desc.slice(0,40)}…`).join('\n')}
+
+These may violate applicable labor and employment law. I request a written response and corrective action within 15 days…
+
+(Unlock to view the full letter with legal citations, claim amounts and signature block)`;
+  document.getElementById('letterBody').textContent=body;
+}
+function mockPay(kind){closeSheet('ovPay');closeSheet('ovPro');toast(kind==='pro'?t('paid_pro'):t('paid_pack'));}
+
+/* ============ SHEET / TOAST ============ */
+function openSheet(id){document.getElementById(id).classList.add('on');}
+function closeSheet(id){document.getElementById(id).classList.remove('on');}
+document.querySelectorAll('.ov').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('on');}));
+let toastT=null;
+function toast(m){const el=document.getElementById('toast');el.textContent=m;el.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('on'),3000);}
+
+/* ============ VOICE INPUT (speech → text) ============ */
+let sr=null,srBtn=null;
+function setupVoice(){
+  ['r-desc','r-feel','ci'].forEach(id=>{
+    const f=document.getElementById(id);if(!f||f.closest('.vin'))return;
+    const w=document.createElement('span');w.className='vin'+(id==='ci'?' flex':'');
+    f.parentNode.insertBefore(w,f);w.appendChild(f);
+    const b=document.createElement('button');b.type='button';b.className='mic';b.textContent='🎤';b.setAttribute('aria-label','voice');
+    b.onclick=()=>micToggle(f,b);w.appendChild(b);
+  });
+}
+function micToggle(field,btn){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){toast(LANG==='zh'?'当前浏览器不支持语音，请手动输入':'Voice not supported here — type instead');return;}
+  if(sr){sr.stop();if(srBtn===btn){return;}}
+  sr=new SR();sr.lang=LANG==='zh'?'zh-CN':'en-US';sr.interimResults=true;sr.continuous=false;
+  srBtn=btn;btn.classList.add('rec');
+  const base=field.value?field.value+(/\s$/.test(field.value)?'':' '):'';
+  sr.onresult=e=>{let out='';for(let i=0;i<e.results.length;i++)out+=e.results[i][0].transcript;
+    field.value=base+out;
+    if(field.tagName==='TEXTAREA'){field.style.height='auto';field.style.height=Math.min(field.scrollHeight,field.classList.contains('ai-ta')?110:400)+'px';}};
+  sr.onerror=ev=>{if(ev.error==='not-allowed')toast(LANG==='zh'?'请允许麦克风权限':'Please allow microphone access');};
+  sr.onend=()=>{btn.classList.remove('rec');sr=null;srBtn=null;};
+  try{sr.start();}catch(e){btn.classList.remove('rec');sr=null;}
+}
+
+/* ============ INIT ============ */
+(function init(){
+  setupVoice();
+  document.getElementById('r-date')&&(document.getElementById('r-date').valueAsDate=new Date());
+  buildDots();
+  applyLang();
+  if(localStorage.zg_onboarded){document.getElementById('onb').style.display='none';document.getElementById('app').style.display='block';go('ai');}
+})();
+</script>
+</body>
+</html>
