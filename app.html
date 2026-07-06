@@ -198,6 +198,7 @@ h1,h2,h3{font-family:var(--serif)}
 .close-x{position:absolute;top:16px;right:18px;font-size:22px;color:var(--muted);background:none;border:none;cursor:pointer}
 .cf-inp{width:100%;background:var(--warm);border:1.5px solid var(--border);border-radius:11px;padding:12px 13px;font-family:var(--sans);font-size:14px;margin-bottom:9px;outline:none}
 .cf-inp:focus{border-color:var(--ink)}
+.fl2{font-size:12px;color:var(--muted);margin:10px 0 5px;font-weight:600}
 .letter{background:var(--warm);border:1px solid var(--border);border-radius:12px;padding:16px;font-size:13px;line-height:1.75;color:#3a3228;max-height:230px;overflow-y:auto;white-space:pre-wrap;position:relative}
 .letter.locked{max-height:150px;overflow:hidden}
 .letter.locked::after{content:'';position:absolute;bottom:0;left:0;right:0;height:80px;background:linear-gradient(transparent,var(--warm))}
@@ -383,6 +384,7 @@ h1,h2,h3{font-family:var(--serif)}
     </div>
 
     <div class="card">
+      <div class="me-row" onclick="openCalc()"><span data-t="me_calc"></span><span class="mr-r">🧮 →</span></div>
       <div class="me-row" onclick="openPaywall()"><span data-t="me_export"></span><span class="mr-r">¥39 →</span></div>
       <div class="me-row" onclick="go('consult')"><span data-t="me_consult"></span><span class="mr-r">→</span></div>
       <div class="me-row" onclick="toggleLang()"><span data-t="me_lang"></span><span class="mr-r" id="meLang">中文 / EN</span></div>
@@ -461,6 +463,32 @@ h1,h2,h3{font-family:var(--serif)}
   </div>
 </div>
 
+<!-- CALCULATOR SHEET -->
+<div class="ov" id="ovCalc">
+  <div class="sheet">
+    <button class="close-x" onclick="closeSheet('ovCalc')">×</button>
+    <div style="text-align:center;font-size:32px;margin-bottom:4px">🧮</div>
+    <h3 style="text-align:center" data-t="calc_h"></h3>
+    <p class="sd" style="text-align:center" data-t="calc_sub"></p>
+    <div class="seg" style="margin-bottom:14px">
+      <div class="seg-b on" id="cm-work" onclick="calcSwitch('work')" data-t="calc_work"></div>
+      <div class="seg-b" id="cm-divorce" onclick="calcSwitch('divorce')" data-t="calc_divorce"></div>
+    </div>
+    <div id="calcWork">
+      <div class="fl2" data-t="calc_salary"></div><input class="cf-inp" id="calc-salary" type="number" inputmode="numeric" placeholder="8000">
+      <div class="fl2" data-t="calc_years"></div><input class="cf-inp" id="calc-years" type="number" inputmode="decimal" placeholder="3">
+      <div class="fl2" data-t="calc_reason"></div><div class="chips" id="calcReasonChips" style="margin-bottom:4px"></div>
+    </div>
+    <div id="calcDivorce" class="hidden">
+      <div class="fl2" data-t="calc_prop"></div><input class="cf-inp" id="calc-prop" type="number" inputmode="numeric" placeholder="1000000">
+      <div class="fl2" data-t="calc_fault"></div><div class="chips" id="calcFaultChips" style="margin-bottom:4px"></div>
+    </div>
+    <button class="btn" style="margin-top:14px" onclick="doCalc()"><span data-t="calc_go"></span></button>
+    <div id="calcResult" class="hidden" style="margin-top:14px"></div>
+    <p style="font-size:10.5px;color:var(--muted);line-height:1.6;margin-top:14px" data-t="calc_disc"></p>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -529,6 +557,16 @@ zh:{
  booked:'✓ 预约成功，对方会尽快联系你',paid_pack:'✓ 已解锁维权包（演示）',paid_pro:'✓ 已开通 Pro（演示）',
  need_book:'⚠️ 请填写称呼和联系方式',
  about_txt:'职场守护 · 一个帮你记录委屈、攒下证据、连接专业帮助的地方。数据默认只存在你的设备，你随时可以删除。',
+ calc_h:'测算能拿多少',calc_sub:'输入几个数，估算你大概能争取多少。仅供参考，具体以律师/法院为准。',
+ calc_work:'职场赔偿',calc_divorce:'离婚财产',
+ calc_salary:'税前月工资（元）',calc_years:'工作年限（年）',calc_reason:'离职情形',
+ cr_illegal:'公司违法辞退',cr_force:'被逼/协商离职',cr_owe:'拖欠工资加班费',
+ calc_prop:'夫妻共同财产总额（元）',calc_fault:'对方是否有过错',
+ cf_none:'没有',cf_affair:'出轨',cf_violence:'家暴',cf_hide:'转移财产',
+ calc_go:'开始测算',calc_range:'你大概可争取',
+ calc_cta_pack:'解锁维权包',calc_cta_lawyer:'找律师帮你争取',
+ calc_disc:'⚠️ 本测算为简化估算，仅供参考，不构成法律意见。实际金额取决于证据、当地标准与司法裁量，请以执业律师和法院裁决为准。',
+ me_calc:'测算赔偿 / 离婚财产',ai_human:'转真人教练聊聊',
 },
 en:{
  brand:'Guardian',
@@ -582,6 +620,16 @@ en:{
  booked:'✓ Booked — they\'ll reach out soon',paid_pack:'✓ Action Pack unlocked (demo)',paid_pro:'✓ Pro activated (demo)',
  need_book:'⚠️ Please fill in your name and contact',
  about_txt:'Guardian — a place to record what you go through, build up evidence, and reach real help. Your data lives on your device by default and you can delete it anytime.',
+ calc_h:'Estimate what you can get',calc_sub:'Enter a few numbers for a rough estimate of what you could claim. For reference only — a lawyer/court decides.',
+ calc_work:'Job compensation',calc_divorce:'Divorce assets',
+ calc_salary:'Monthly salary (pre-tax)',calc_years:'Years employed',calc_reason:'Situation',
+ cr_illegal:'Illegally fired',cr_force:'Forced/negotiated exit',cr_owe:'Unpaid wages/overtime',
+ calc_prop:'Total marital assets',calc_fault:'Other party at fault?',
+ cf_none:'No',cf_affair:'Affair',cf_violence:'Abuse',cf_hide:'Hid assets',
+ calc_go:'Calculate',calc_range:'You could seek roughly',
+ calc_cta_pack:'Unlock Action Pack',calc_cta_lawyer:'Get a lawyer to fight for it',
+ calc_disc:'⚠️ This is a simplified estimate for reference only, not legal advice. Actual amounts depend on evidence, local standards and judicial discretion — a licensed lawyer and the court decide.',
+ me_calc:'Estimate compensation / assets',ai_human:'Talk to a real coach',
 },
 };
 let LANG=localStorage.zg_lang||'zh';
@@ -702,6 +750,7 @@ function renderTL(){
       <div class="prog-wrap"><div class="prog-fill" style="width:${pct}%"></div></div>
       <div style="font-size:12px;color:var(--muted)">${advice}</div>
       <button class="btn" style="margin-top:14px" onclick="openPaywall()">📤 ${t('tl_export')}</button>
+      <button class="btn btn-2" style="margin-top:8px" onclick="openCalc()">🧮 ${t('calc_h')}</button>
     </div>${items}`;
 }
 
@@ -728,8 +777,8 @@ function aiSend(){
   el.value='';el.style.height='auto';addMsg('usr',v);clearQR();showTyping();
   setTimeout(()=>{hideTyping();
     const flow=aiFlow[LANG];const r=flow[Math.min(aiStep,flow.length-1)](v);aiStep++;addMsg('ai',r);
-    if(aiStep>=flow.length){if(recs.length>=2){setTimeout(()=>aiUpsell(),500);}else{setTimeout(()=>setQR([t('ai_qr4')]),400);}}
-    else setTimeout(()=>setQR([t('ai_qr4')]),400);
+    if(aiStep>=flow.length){if(recs.length>=2){setTimeout(()=>aiUpsell(),500);}else{setTimeout(()=>setQR([t('ai_qr4'),t('ai_human')]),400);}}
+    else setTimeout(()=>setQR([t('ai_qr4'),t('ai_human')]),400);
   },1100+Math.random()*500);
 }
 function aiUpsell(){
@@ -738,15 +787,18 @@ function aiUpsell(){
   const zh=LANG==='zh';
   d.innerHTML=`<div class="up-inline"><h4>${zh?'想要具体的维权建议？':'Want concrete next-step advice?'}</h4>
     <p>${zh?'免费版帮你顺气；要「怎么维权、写律师函、找哪个部门」这种具体行动方案，属于维权包。':'The free coach helps you settle. Concrete action — how to act, a formal letter, who to contact — is in the Action Pack.'}</p>
-    <button class="btn" style="background:#fff;color:var(--ink)" onclick="openLetter()">${zh?'✉️ 帮我写给公司的律师函':'✉️ Draft my letter to the employer'}</button></div>`;
+    <button class="btn" style="background:#fff;color:var(--ink)" onclick="openLetter()">${zh?'✉️ 帮我写给公司的律师函':'✉️ Draft my letter to the employer'}</button>
+    <button class="btn" style="margin-top:8px;background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.3);box-shadow:none" onclick="aiToCoach()">${zh?'💚 转真人情感老师聊聊':'💚 Talk to a real coach'}</button></div>`;
   w.appendChild(d);w.scrollTop=w.scrollHeight;
 }
 function setQR(items){const q=document.getElementById('qr');q.innerHTML=items.map(x=>`<button class="qrb" onclick="qrClick(this)">${x}</button>`).join('');}
 function clearQR(){document.getElementById('qr').innerHTML='';}
 function qrClick(el){const x=el.textContent;
   if(x===t('ai_qr4')){clearQR();addMsg('usr',x);showTyping();setTimeout(()=>{hideTyping();addMsg('ai',LANG==='zh'?'好，我陪你去记。把刚才的事写下来，越细越好 💪':'Okay, I\'ll go with you. Write it down in detail 💪');setTimeout(()=>go('record'),900);},700);return;}
+  if(x===t('ai_human')){clearQR();addMsg('usr',x);showTyping();setTimeout(()=>{hideTyping();aiToCoach();},700);return;}
   document.getElementById('ci').value=x;aiSend();
 }
+function aiToCoach(){addMsg('ai',LANG==='zh'?'好，我带你去找情感老师，是真人，首次 30 分钟免费，可以好好聊聊 💚':'Let me take you to a real coach — a real person, first 30 min free 💚');setTimeout(()=>{document.querySelectorAll('.seg-b').forEach(b=>b.classList.toggle('on',b.dataset.r==='emotion'));curRole='emotion';go('consult');},900);}
 function addMsg(role,text){const w=document.getElementById('msgs');const now=new Date().toLocaleTimeString(LANG==='zh'?'zh-CN':'en-US',{hour:'2-digit',minute:'2-digit'});const d=document.createElement('div');d.className='cm '+role;d.innerHTML=`<div class="cb">${text.replace(/\n/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')}</div><div class="ct">${now}</div>`;w.appendChild(d);w.scrollTop=w.scrollHeight;}
 let typEl=null;
 function showTyping(){const w=document.getElementById('msgs');typEl=document.createElement('div');typEl.className='cm ai';typEl.innerHTML='<div class="typing"><div class="td"></div><div class="td"></div><div class="td"></div></div>';w.appendChild(typEl);w.scrollTop=w.scrollHeight;}
@@ -824,6 +876,50 @@ function closeSheet(id){document.getElementById(id).classList.remove('on');}
 document.querySelectorAll('.ov').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('on');}));
 let toastT=null;
 function toast(m){const el=document.getElementById('toast');el.textContent=m;el.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('on'),3000);}
+
+/* ============ CALCULATOR ============ */
+let calcMode='work',calcReason='illegal',calcFault='none';
+const CR=[['illegal','cr_illegal'],['force','cr_force'],['owe','cr_owe']];
+const CF=[['none','cf_none'],['affair','cf_affair'],['violence','cf_violence'],['hide','cf_hide']];
+function openCalc(){calcSwitch(calcMode);renderCalcChips();document.getElementById('calcResult').classList.add('hidden');openSheet('ovCalc');}
+function calcSwitch(m){calcMode=m;
+  document.getElementById('cm-work').classList.toggle('on',m==='work');
+  document.getElementById('cm-divorce').classList.toggle('on',m==='divorce');
+  document.getElementById('calcWork').classList.toggle('hidden',m!=='work');
+  document.getElementById('calcDivorce').classList.toggle('hidden',m!=='divorce');
+  document.getElementById('calcResult').classList.add('hidden');}
+function renderCalcChips(){
+  document.getElementById('calcReasonChips').innerHTML=CR.map(([k,tk])=>`<div class="chip${calcReason===k?' on':''}" onclick="calcReason='${k}';renderCalcChips()">${t(tk)}</div>`).join('');
+  document.getElementById('calcFaultChips').innerHTML=CF.map(([k,tk])=>`<div class="chip${calcFault===k?' on':''}" onclick="calcFault='${k}';renderCalcChips()">${t(tk)}</div>`).join('');
+}
+function fmtMoney(n){return (LANG==='zh'?'¥':'$')+Math.round(n).toLocaleString('en-US');}
+function doCalc(){
+  const zh=LANG==='zh';let low,high,lines=[];
+  if(calcMode==='work'){
+    const s=+document.getElementById('calc-salary').value||0,y=+document.getElementById('calc-years').value||0;
+    if(!s){toast(zh?'⚠️ 请填月工资':'⚠️ Enter monthly salary');return;}
+    const N=Math.max(0.5,Math.round(y*2)/2),base=N*s;
+    if(calcReason==='illegal'){low=2*base;high=2*base;lines.push(zh?`违法解除按 2N＝2×${N} 个月工资`:`Illegal termination = 2N = 2×${N} months`);}
+    else if(calcReason==='force'){low=base;high=base+s;lines.push(zh?`经济补偿 N～N+1（${N}～${N+1} 个月）`:`Severance N–N+1 (${N}–${N+1} months)`);}
+    else{low=base;high=2*base;lines.push(zh?`欠款可另主张本金＋25%赔偿；解除补偿 N～2N`:`Owed wages + 25% penalty (separate); severance N–2N`);}
+    lines.push(zh?`月薪超当地社平3倍的部分有封顶，此处未计`:`A cap applies above 3× local avg wage (not counted)`);
+  }else{
+    const p=+document.getElementById('calc-prop').value||0;
+    if(!p){toast(zh?'⚠️ 请填共同财产总额':'⚠️ Enter total marital assets');return;}
+    low=p*0.5;
+    if(calcFault==='none'){high=p*0.5;lines.push(zh?`原则均分，各约 50%`:`Split ~50/50 by default`);}
+    else{high=p*0.65;lines.push(zh?`对方有过错，无过错方可争取多分（约 50%～65%）`:`With fault, the innocent party may seek more (~50%–65%)`);lines.push(zh?`并可另行主张离婚损害赔偿`:`May also claim divorce damages`);}
+    lines.push(zh?`子女抚养费另算`:`Child support is calculated separately`);
+  }
+  const box=document.getElementById('calcResult');box.classList.remove('hidden');
+  box.innerHTML=`<div style="background:linear-gradient(135deg,#1a1510,#0e0c0a);border-radius:16px;padding:18px;color:#fff;text-align:center">
+    <div style="font-size:11px;color:#8a8070;letter-spacing:1px">${t('calc_range')}</div>
+    <div style="font-family:var(--serif);font-size:29px;font-weight:800;margin:6px 0">${fmtMoney(low)}${high>low?' ~ '+fmtMoney(high):''}</div>
+    <div style="font-size:11.5px;color:#b8ad9c;line-height:1.7">${lines.map(l=>'· '+l).join('<br>')}</div></div>
+    <button class="btn" style="margin-top:12px" onclick="closeSheet('ovCalc');openPaywall()">${t('calc_cta_pack')} · ¥39</button>
+    <button class="btn btn-2" style="margin-top:8px" onclick="closeSheet('ovCalc');toEmotion()">${t('calc_cta_lawyer')}</button>`;
+}
+function toEmotion(){document.querySelectorAll('.seg-b').forEach(b=>b.classList.toggle('on',b.dataset.r==='lawyer'));curRole='lawyer';go('consult');}
 
 /* ============ VOICE INPUT (speech → text) ============ */
 let sr=null,srBtn=null;
