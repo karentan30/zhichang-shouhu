@@ -657,6 +657,8 @@ const EXPERTS=[
 let recs=JSON.parse(localStorage.zg_recs||'[]');
 let curCat='work',sTypes=[],sSev=null,sEv=[];
 let aiStep=0;
+let chatHistory=[];
+const COACH_API='https://slim-fabulousslim.vercel.app/api/guardian'; // DeepSeek 代理(复用Slim的key)·挂了自动降级到脚本
 const t=k=>I18N[LANG][k]||k;
 
 /* ============ i18n apply ============ */
@@ -757,6 +759,7 @@ function renderTL(){
 /* ============ AI COACH ============ */
 function aiInit(){
   document.getElementById('msgs').innerHTML='';
+  aiStep=0;chatHistory=[{role:'assistant',content:t('ai_hi')}];
   addMsg('ai',t('ai_hi'));
   setQR([t('ai_qr1'),t('ai_qr2'),t('ai_qr3'),t('ai_qr4')]);
 }
@@ -772,14 +775,22 @@ const aiFlow={
   ()=>`Thank you for saying it out loud. Your feelings are completely valid.\n\nTwo suggestions:\n① **Log an entry now**, while it's fresh — it's the first step to protecting yourself.\n② If it keeps happening, don't carry it alone.`,
  ],
 };
-function aiSend(){
+async function aiSend(){
   const el=document.getElementById('ci'),v=el.value.trim();if(!v)return;
   el.value='';el.style.height='auto';addMsg('usr',v);clearQR();showTyping();
-  setTimeout(()=>{hideTyping();
-    const flow=aiFlow[LANG];const r=flow[Math.min(aiStep,flow.length-1)](v);aiStep++;addMsg('ai',r);
-    if(aiStep>=flow.length){if(recs.length>=2){setTimeout(()=>aiUpsell(),500);}else{setTimeout(()=>setQR([t('ai_qr4'),t('ai_human')]),400);}}
-    else setTimeout(()=>setQR([t('ai_qr4'),t('ai_human')]),400);
-  },1100+Math.random()*500);
+  chatHistory.push({role:'user',content:v});
+  const nudge=()=>{if(recs.length>=2&&aiStep>=2){setTimeout(()=>aiUpsell(),500);}else{setTimeout(()=>setQR([t('ai_qr4'),t('ai_human')]),400);}};
+  try{
+    const res=await fetch(COACH_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:chatHistory.slice(-10),lang:LANG})});
+    if(!res.ok)throw 0;
+    const data=await res.json();const reply=(data.reply||'').trim();
+    if(!reply)throw 0;
+    hideTyping();chatHistory.push({role:'assistant',content:reply});addMsg('ai',reply);aiStep++;nudge();
+  }catch(_){ // 接口挂了 → 降级到脚本，不白屏
+    hideTyping();
+    const flow=aiFlow[LANG];const r=flow[Math.min(aiStep,flow.length-1)](v);aiStep++;chatHistory.push({role:'assistant',content:r});addMsg('ai',r);
+    if(aiStep>=flow.length)nudge();else setTimeout(()=>setQR([t('ai_qr4'),t('ai_human')]),400);
+  }
 }
 function aiUpsell(){
   const w=document.getElementById('msgs');
