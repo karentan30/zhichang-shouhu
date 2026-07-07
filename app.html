@@ -348,6 +348,7 @@ h1,h2,h3{font-family:var(--serif)}
         <textarea class="ai-ta" id="ci" rows="1" data-tph="ai_ph" onkeydown="aiKey(event)" oninput="aiGrow(this)"></textarea>
         <button class="ai-send" onclick="aiSend()">↑</button>
       </div>
+      <div style="font-size:10px;color:var(--muted);text-align:center;padding:0 16px 8px;background:var(--bg)" data-t="ai_disc"></div>
     </div>
   </div>
 
@@ -417,7 +418,7 @@ h1,h2,h3{font-family:var(--serif)}
       <div class="pk-feat"><span class="ic">🧭</span><span data-t="pw_f3"></span></div>
       <div class="pk-feat"><span class="ic">👩‍⚖️</span><span data-t="pw_f4"></span></div>
     </div>
-    <button class="btn" onclick="mockPay('pack')"><span data-t="pw_cta"></span></button>
+    <button class="btn" onclick="unlockPack()"><span data-t="pw_cta"></span></button>
     <p style="text-align:center;font-size:11px;color:var(--muted);margin-top:10px" data-t="pw_note"></p>
   </div>
 </div>
@@ -435,7 +436,7 @@ h1,h2,h3{font-family:var(--serif)}
       <div class="pk-feat"><span class="ic">☁️</span><span data-t="pro_l2"></span></div>
       <div class="pk-feat"><span class="ic">⚡</span><span data-t="pro_l3"></span></div>
     </div>
-    <button class="btn" onclick="mockPay('pro')"><span data-t="pro_cta2"></span></button>
+    <button class="btn" onclick="proDemo()"><span data-t="pro_cta2"></span></button>
   </div>
 </div>
 
@@ -446,7 +447,12 @@ h1,h2,h3{font-family:var(--serif)}
     <h3 data-t="lt_h"></h3>
     <p class="sd" data-t="lt_sub"></p>
     <div class="letter locked" id="letterBody"></div>
-    <button class="btn" style="margin-top:16px" onclick="closeSheet('ovLetter');openPaywall()"><span data-t="lt_cta"></span> · ¥39</button>
+    <button class="btn" id="ltUnlock" style="margin-top:16px" onclick="closeSheet('ovLetter');openPaywall()"><span data-t="lt_cta"></span></button>
+    <div id="ltActions" style="display:none;gap:8px;margin-top:16px">
+      <button class="btn btn-2" style="flex:1" onclick="copyLetter()" data-t="lt_copy"></button>
+      <button class="btn" style="flex:1" onclick="generateReport()" data-t="lt_report"></button>
+    </div>
+    <p style="text-align:center;font-size:11px;color:var(--muted);margin-top:12px" data-t="lt_disc"></p>
   </div>
 </div>
 
@@ -518,7 +524,8 @@ zh:{
  ph_feel:'你的感受（可选）：委屈、愤怒、失眠……写下来也是心理影响的记录。',
  sev_low:'较轻',sev_med:'中等',sev_high:'严重',
  ev_shot:'截图',ev_audio:'录音',ev_witness:'证人',ev_file:'文件',
- rec_save:'加密保存这一条',rec_foot:'🔐 数据只存在你的手机上',
+ rec_save:'保存这一条',rec_foot:'🔒 数据只存在你的手机上',
+ ai_disc:'AI 教练用于情绪支持与信息参考，不构成法律或医疗意见。',
  /* timeline */
  tl_eye:'证据时间线',tl_h:'我的记录',tl_k1:'条数',tl_k2:'有证据',tl_k3:'完整度',
  empty_t:'还没有任何记录',empty_s:'今天有什么让你憋屈的事？记下来，出口气。',empty_c:'＋ 记第一条',
@@ -543,18 +550,19 @@ zh:{
  pw_f2:'AI 生成《致公司/领导的律师函·投诉信》',
  pw_f3:'专属维权路径规划：找哪个部门、准备什么材料',
  pw_f4:'一键对接平台合作律师（首次免费）',
- pw_cta:'¥39 一次性解锁（永久）',pw_note:'一次买断这份案卷 · 非订阅 · 记录永久免费',
+ pw_cta:'生成我的案卷（内测免费）',pw_note:'内测期免费解锁 · 生成真实证据报告与律师函模板 · 记录永久免费',
  /* pro sheet */
  pro_sub:'给需要长期支持的你',pro_mo:'/月',
  pro_l1:'AI 教练不限量 + 深度维权建议',pro_l2:'云端加密备份',pro_l3:'优先律师 / 情感老师匹配',pro_cta2:'开通 Pro · ¥20/月',
  /* letter */
- lt_h:'律师函已生成（预览）',lt_sub:'基于你的记录自动起草。解锁后可复制全文并导出。',
- lt_cta:'解锁完整律师函',
+ lt_h:'律师函模板已生成（预览）',lt_sub:'根据你的记录自动起草的参考模板。解锁后可查看全文、复制并导出。',
+ lt_cta:'解锁完整律师函模板',lt_copy:'📋 复制全文',lt_report:'📄 生成证据报告',
+ lt_disc:'⚠️ 本函为参考模板，非法律意见。正式发出前请交由执业律师审核。',
  /* book */
  bk_name:'你的称呼',bk_contact:'微信号 / 手机号',bk_note:'简单描述你的情况（可选）',bk_submit:'提交预约',
  /* misc */
- saved:'✓ 已加密保存',need_desc:'⚠️ 请先写下发生了什么',need_type:'⚠️ 请选一个类型',
- booked:'✓ 预约成功，对方会尽快联系你',paid_pack:'✓ 已解锁维权包（演示）',paid_pro:'✓ 已开通 Pro（演示）',
+ saved:'✓ 已保存到本机',need_desc:'⚠️ 请先写下发生了什么',need_type:'⚠️ 请选一个类型',
+ booked:'✓ 预约成功，对方会尽快联系你',paid_pack:'✓ 已解锁·案卷已生成',paid_pro:'✓ 已开通 Pro（演示）',
  need_book:'⚠️ 请填写称呼和联系方式',
  about_txt:'职场守护 · 一个帮你记录委屈、攒下证据、连接专业帮助的地方。数据默认只存在你的设备，你随时可以删除。',
  calc_h:'测算能拿多少',calc_sub:'输入几个数，估算你大概能争取多少。仅供参考，具体以律师/法院为准。',
@@ -590,7 +598,8 @@ en:{
  ph_feel:'How you felt (optional): hurt, angry, couldn\'t sleep… this documents the emotional impact.',
  sev_low:'Mild',sev_med:'Medium',sev_high:'Severe',
  ev_shot:'Screenshot',ev_audio:'Audio',ev_witness:'Witness',ev_file:'File',
- rec_save:'Save this entry',rec_foot:'🔐 Stored only on your device',
+ rec_save:'Save this entry',rec_foot:'🔒 Stored only on your device',
+ ai_disc:'The AI coach offers emotional support and general info — not legal or medical advice.',
  tl_eye:'Evidence timeline',tl_h:'My records',tl_k1:'Entries',tl_k2:'With proof',tl_k3:'Strength',
  empty_t:'No records yet',empty_s:'What got under your skin today? Write it down and let it out.',empty_c:'＋ Add your first entry',
  tl_export:'Export evidence report / letter',tl_advice_lo:'A few more entries builds a solid chain of evidence',tl_advice_hi:'You have enough on record — consider acting or consulting a lawyer',
@@ -610,14 +619,15 @@ en:{
  pw_f2:'AI-drafted formal letter to your employer',
  pw_f3:'A personalized action plan: who to contact, what to prepare',
  pw_f4:'One-tap connection to a partner lawyer (first consult free)',
- pw_cta:'Unlock for $6.99 (one-time)',pw_note:'One-time purchase for this case file · not a subscription · logging is always free',
+ pw_cta:'Generate my case file (free beta)',pw_note:'Free to unlock during beta · generates a real evidence report and letter template · logging is always free',
  pro_sub:'For when you need ongoing support',pro_mo:'/mo',
  pro_l1:'Unlimited AI coach + deep advice',pro_l2:'Encrypted cloud backup',pro_l3:'Priority matching',pro_cta2:'Start Pro · $4.99/mo',
- lt_h:'Your letter is drafted (preview)',lt_sub:'Auto-drafted from your records. Unlock to copy and export the full text.',
- lt_cta:'Unlock full letter',
+ lt_h:'Letter template drafted (preview)',lt_sub:'A reference template auto-drafted from your records. Unlock to view, copy and export the full text.',
+ lt_cta:'Unlock full letter template',lt_copy:'📋 Copy all',lt_report:'📄 Generate report',
+ lt_disc:'⚠️ This is a reference template, not legal advice. Have a licensed lawyer review it before sending.',
  bk_name:'Your name',bk_contact:'Phone / WeChat / email',bk_note:'Briefly describe your situation (optional)',bk_submit:'Request booking',
- saved:'✓ Saved & encrypted',need_desc:'⚠️ Please write what happened first',need_type:'⚠️ Pick a type',
- booked:'✓ Booked — they\'ll reach out soon',paid_pack:'✓ Action Pack unlocked (demo)',paid_pro:'✓ Pro activated (demo)',
+ saved:'✓ Saved on your device',need_desc:'⚠️ Please write what happened first',need_type:'⚠️ Pick a type',
+ booked:'✓ Booked — they\'ll reach out soon',paid_pack:'✓ Unlocked · case file generated',paid_pro:'✓ Pro activated (demo)',
  need_book:'⚠️ Please fill in your name and contact',
  about_txt:'Guardian — a place to record what you go through, build up evidence, and reach real help. Your data lives on your device by default and you can delete it anytime.',
  calc_h:'Estimate what you can get',calc_sub:'Enter a few numbers for a rough estimate of what you could claim. For reference only — a lawyer/court decides.',
@@ -658,7 +668,19 @@ let recs=JSON.parse(localStorage.zg_recs||'[]');
 let curCat='work',sTypes=[],sSev=null,sEv=[];
 let aiStep=0;
 let chatHistory=[];
-const COACH_API='https://slim-fabulousslim.vercel.app/api/guardian'; // DeepSeek 代理(复用Slim的key)·挂了自动降级到脚本
+// 按顺序尝试：①本仓库自带 serverless(部署到 Vercel 后生效·DashScope) ②Slim 后备 ③都挂→降级脚本(aiFlow)不白屏
+const COACH_APIS=['/api/coach','https://slim-fabulousslim.vercel.app/api/guardian'];
+async function callCoach(body){
+  for(const url of COACH_APIS){
+    try{
+      const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+      if(!res.ok)continue;
+      const data=await res.json();const reply=(data.reply||'').trim();
+      if(reply)return reply;
+    }catch(_){/* 试下一个 */}
+  }
+  return null;
+}
 const t=k=>I18N[LANG][k]||k;
 
 /* ============ i18n apply ============ */
@@ -780,14 +802,11 @@ async function aiSend(){
   el.value='';el.style.height='auto';addMsg('usr',v);clearQR();showTyping();
   chatHistory.push({role:'user',content:v});
   const nudge=()=>{if(recs.length>=2&&aiStep>=2){setTimeout(()=>aiUpsell(),500);}else{setTimeout(()=>setQR([t('ai_qr4'),t('ai_human')]),400);}};
-  try{
-    const res=await fetch(COACH_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:chatHistory.slice(-10),lang:LANG})});
-    if(!res.ok)throw 0;
-    const data=await res.json();const reply=(data.reply||'').trim();
-    if(!reply)throw 0;
-    hideTyping();chatHistory.push({role:'assistant',content:reply});addMsg('ai',reply);aiStep++;nudge();
-  }catch(_){ // 接口挂了 → 降级到脚本，不白屏
-    hideTyping();
+  const reply=await callCoach({messages:chatHistory.slice(-10),lang:LANG});
+  hideTyping();
+  if(reply){ // 真 AI
+    chatHistory.push({role:'assistant',content:reply});addMsg('ai',reply);aiStep++;nudge();
+  }else{ // 接口都挂了 → 降级到脚本，不白屏
     const flow=aiFlow[LANG];const r=flow[Math.min(aiStep,flow.length-1)](v);aiStep++;chatHistory.push({role:'assistant',content:r});addMsg('ai',r);
     if(aiStep>=flow.length)nudge();else setTimeout(()=>setQR([t('ai_qr4'),t('ai_human')]),400);
   }
@@ -847,39 +866,140 @@ function submitBook(){const n=val('bk-name'),c=val('bk-contact');if(!n||!c){toas
 function openPaywall(){openSheet('ovPay');}
 function openPro(){openSheet('ovPro');}
 function showAbout(){toast(t('about_txt'));}
-function openLetter(){
-  buildLetter();openSheet('ovLetter');
+const isUnlocked=()=>localStorage.zg_unlocked==='1';
+
+/* 律师函：未解锁=预览(截断)，已解锁=完整全文 */
+function openLetter(){buildLetter();openSheet('ovLetter');
+  const full=isUnlocked();
+  document.getElementById('ltUnlock').style.display=full?'none':'block';
+  document.getElementById('ltActions').style.display=full?'flex':'none';
+  document.getElementById('letterBody').classList.toggle('locked',!full);
 }
-function buildLetter(){
-  const r=recs[0];const zh=LANG==='zh';
-  const cnt=recs.length;
-  const body= zh ?
-`致 XX公司 人力资源部 / 相关负责人：
+function letterText(full){
+  const r=recs[0];const zh=LANG==='zh';const cnt=recs.length;
+  const list=(full?recs:recs.slice(0,3));
+  if(zh){
+    const items=list.map((x,i)=>`${i+1}. ${x.date}${x.time?' '+x.time:''}　${typeLabel(x.types[0])}${x.loc?'（'+x.loc+'）':''}：${x.desc}${x.ev&&x.ev.length?'　【有证据】':''}`).join('\n');
+    let body=`致：XX公司 人力资源部 / 相关负责人
 
 本人现就近期在工作中遭遇的不当对待，正式提出书面交涉。
 
-自 ${r?r.date:'____'} 起，本人持续遭遇以下情形，已逐条记录在案（共 ${cnt} 条，含时间、地点、在场人员及证据）：
+自 ${r?r.date:'____'} 起，本人持续遭遇以下情形，均已逐条记录在案（共 ${cnt} 条，含时间、地点、在场人员及相应证据）：
 
-${recs.slice(0,3).map((x,i)=>`${i+1}. ${x.date} ${typeLabel(x.types[0])}：${x.desc.slice(0,40)}…`).join('\n')}
+${items}`;
+    if(full){body+=`
 
-上述行为已涉嫌违反《劳动合同法》《劳动法》相关规定。本人现要求公司在 15 日内就此作出书面回应并纠正……
+上述行为已对本人的工作环境与身心健康造成持续影响，涉嫌违反《中华人民共和国劳动法》《中华人民共和国劳动合同法》中关于保障劳动者合法权益、禁止侮辱及不当对待的相关规定。
 
-（解锁后可查看完整函件，含法条引用、诉求金额与落款）`
-:
-`To: HR Department / Responsible Manager,
+本人现正式要求：
+一、公司在收到本函之日起 15 日内，就上述情形作出书面回应；
+二、立即停止并纠正相关不当行为；
+三、如经核实属实，依法承担相应责任并作出合理补偿。
+
+本人保留通过劳动监察投诉、申请劳动仲裁及提起诉讼等一切合法途径维护自身权益的权利。
+
+此致
+
+　　　　　　　　　　　　　　本人（签名）：____________
+　　　　　　　　　　　　　　联系方式：____________
+　　　　　　　　　　　　　　日期：${new Date().toISOString().slice(0,10)}`;}
+    else{body+=`
+
+……（完整函件含法律依据、正式诉求、落款签名等，解锁后可查看并导出）`;}
+    return body;
+  }else{
+    const items=list.map((x,i)=>`${i+1}. ${x.date}${x.time?' '+x.time:''}  ${typeLabel(x.types[0])}${x.loc?' ('+x.loc+')':''}: ${x.desc}${x.ev&&x.ev.length?'  [evidence on file]':''}`).join('\n');
+    let body=`To: HR Department / Responsible Manager
 
 I am writing to formally raise concerns regarding recent mistreatment in the workplace.
 
-Since ${r?r.date:'____'}, I have experienced the following, each documented (${cnt} entries with date, place, witnesses and evidence):
+Since ${r?r.date:'____'}, I have experienced the following, each documented (${cnt} entries with date, place, witnesses and corresponding evidence):
 
-${recs.slice(0,3).map((x,i)=>`${i+1}. ${x.date} — ${typeLabel(x.types[0])}: ${x.desc.slice(0,40)}…`).join('\n')}
+${items}`;
+    if(full){body+=`
 
-These may violate applicable labor and employment law. I request a written response and corrective action within 15 days…
+This conduct has had a sustained impact on my working environment and well-being, and may violate applicable labor and employment laws protecting employees from harassment and improper treatment.
 
-(Unlock to view the full letter with legal citations, claim amounts and signature block)`;
-  document.getElementById('letterBody').textContent=body;
+I formally request that the company:
+1. Provide a written response within 15 days of receiving this letter;
+2. Immediately cease and correct the conduct described above;
+3. Where verified, take appropriate responsibility and provide reasonable remedy.
+
+I reserve the right to pursue all lawful remedies, including a labor complaint, arbitration and litigation.
+
+Sincerely,
+
+Signature: ____________
+Contact: ____________
+Date: ${new Date().toISOString().slice(0,10)}`;}
+    else{body+=`
+
+… (The full letter — legal basis, formal demands, signature block — is available after unlocking.)`;}
+    return body;
+  }
 }
-function mockPay(kind){closeSheet('ovPay');closeSheet('ovPro');toast(kind==='pro'?t('paid_pro'):t('paid_pack'));}
+function buildLetter(){document.getElementById('letterBody').textContent=letterText(isUnlocked());}
+function copyLetter(){const txt=letterText(true);navigator.clipboard?.writeText(txt).then(()=>toast(LANG==='zh'?'✓ 已复制全文':'✓ Copied'),()=>toast(txt.slice(0,1)&&(LANG==='zh'?'长按文字手动复制':'Long-press to copy')));}
+
+/* ¥39 维权包 —— 内测免费解锁，交付真东西(证据报告PDF + 完整律师函) */
+function unlockPack(){
+  if(!recs.length){toast(LANG==='zh'?'先记一条，才能生成案卷':'Log at least one entry first');return;}
+  localStorage.zg_unlocked='1';
+  closeSheet('ovPay');
+  toast(LANG==='zh'?'✓ 已解锁·正在生成你的案卷':'✓ Unlocked · generating your case file');
+  setTimeout(()=>generateReport(),400);
+}
+
+function proDemo(){closeSheet('ovPro');toast(t('paid_pro'));}
+
+/* 生成《证据时间线报告》—— 纯前端，另开页面可打印/存为 PDF */
+function generateReport(){
+  const zh=LANG==='zh';
+  const n=recs.length,we=recs.filter(r=>r.ev.length).length;
+  const pct=n?Math.round(recs.reduce((a,r)=>{let s=40;if(r.ev.length)s+=28;if(r.who)s+=16;if(r.loc)s+=16;return a+Math.min(s,100);},0)/n):0;
+  const esc=s=>String(s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  const rows=recs.map((r,i)=>`<tr>
+    <td>${i+1}</td><td>${r.date||''}${r.time?'<br>'+r.time:''}</td>
+    <td>${esc(typeLabel(r.types[0]))}${r.sev==='high'?(zh?'<br><b style="color:#C13B2A">严重</b>':'<br><b style="color:#C13B2A">High</b>'):''}</td>
+    <td>${esc(r.who)||'—'}</td><td>${esc(r.loc)||'—'}</td>
+    <td>${esc(r.desc)}</td>
+    <td>${r.ev&&r.ev.length?(zh?'有 ✓':'Yes ✓'):'—'}</td></tr>`).join('');
+  const title=zh?'证据时间线报告':'Evidence Timeline Report';
+  const disc=zh
+    ?'本报告由「守护」根据用户自行记录的内容自动生成，仅用于个人整理与留存，不构成法律意见，也不代表任何法律结论。具体维权请咨询执业律师，并以法院/仲裁机构认定为准。'
+    :'This report is auto-generated by Guardian from the user\'s own records, for personal organization only. It is not legal advice and states no legal conclusion. Consult a licensed lawyer; a court/tribunal decides.';
+  const html=`<!doctype html><html lang="${zh?'zh-CN':'en'}"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title>
+<style>
+*{box-sizing:border-box}body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',Segoe UI,sans-serif;color:#1c1917;margin:0;padding:28px 22px;line-height:1.55}
+h1{font-size:22px;margin:0 0 4px}.sub{color:#78716c;font-size:12px;margin-bottom:18px}
+.kpis{display:flex;gap:10px;margin:14px 0 20px}.kpi{flex:1;background:#faf7f2;border:1px solid #eee3d5;border-radius:10px;padding:10px 12px;text-align:center}
+.kpi b{display:block;font-size:20px;color:#8a5a2b}.kpi span{font-size:11px;color:#78716c}
+table{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px}
+th,td{border:1px solid #e7e0d6;padding:7px 8px;text-align:left;vertical-align:top}
+th{background:#f5efe6;font-weight:600}td:nth-child(6){min-width:180px}
+.disc{margin-top:22px;padding:12px 14px;background:#fbf6ee;border-left:3px solid #d6a15b;border-radius:6px;font-size:11px;color:#6b5c48;line-height:1.6}
+.bar{position:sticky;top:0;background:#fff;padding:0 0 14px;border-bottom:1px solid #eee;margin-bottom:14px;display:flex;gap:10px;justify-content:flex-end}
+button{font-size:14px;padding:9px 18px;border-radius:9px;border:0;background:#8a5a2b;color:#fff;font-weight:600}
+@media print{.bar{display:none}body{padding:0}}
+</style></head><body>
+<div class="bar"><button onclick="window.print()">${zh?'🖨 打印 / 存为 PDF':'🖨 Print / Save as PDF'}</button></div>
+<h1>🛡️ ${title}</h1>
+<div class="sub">${zh?'生成时间':'Generated'}: ${new Date().toLocaleString(zh?'zh-CN':'en-US')} · ${zh?'守护 Guardian 自动整理':'Auto-organized by Guardian'}</div>
+<div class="kpis">
+  <div class="kpi"><b>${n}</b><span>${zh?'记录条数':'Entries'}</span></div>
+  <div class="kpi"><b>${we}</b><span>${zh?'含证据':'With evidence'}</span></div>
+  <div class="kpi"><b>${pct}%</b><span>${zh?'证据完整度':'Completeness'}</span></div>
+</div>
+<table><thead><tr>
+<th>#</th><th>${zh?'时间':'When'}</th><th>${zh?'类型':'Type'}</th><th>${zh?'涉及人':'Who'}</th><th>${zh?'地点':'Where'}</th><th>${zh?'经过':'What happened'}</th><th>${zh?'证据':'Evidence'}</th>
+</tr></thead><tbody>${rows}</tbody></table>
+<div class="disc">⚠️ ${disc}</div>
+</body></html>`;
+  const w=window.open('','_blank');
+  if(!w){toast(zh?'请允许弹出窗口以查看报告':'Please allow pop-ups to view the report');return;}
+  w.document.write(html);w.document.close();
+}
 
 /* ============ SHEET / TOAST ============ */
 function openSheet(id){document.getElementById(id).classList.add('on');}
