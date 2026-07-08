@@ -97,6 +97,14 @@ h1,h2,h3{font-family:var(--serif)}
 .fold.open .caret{transform:rotate(180deg)}
 .fold-b{display:none;margin-top:14px}
 .fold.open .fold-b{display:block}
+.pay-tabs{display:flex;gap:8px;margin:16px 0 4px}
+.pay-tab{flex:1;padding:10px 6px;border-radius:12px;border:2px solid var(--border);background:var(--card);text-align:center;cursor:pointer;font-size:12.5px;font-weight:700;color:#7a7060;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:4px}
+.pay-tab.on{border-color:var(--ink);background:var(--ink);color:#fff}
+.pay-qr{min-height:230px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px 0}
+.pay-qr-img{width:210px;height:210px;border-radius:12px;border:1px solid var(--border);background:#fff}
+.pay-tip{font-size:13px;color:var(--ink);font-weight:600;margin-top:12px;text-align:center}
+.pay-loading,.pay-err,.pay-soon{font-size:13px;color:var(--muted);text-align:center;padding:24px 16px;line-height:1.6}
+.pay-err{color:#C13B2A}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:9px}
 .sev3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .sev{padding:11px 6px;border-radius:12px;border:2px solid var(--border);background:var(--card);text-align:center;cursor:pointer;font-size:11.5px;font-weight:700}
@@ -444,6 +452,21 @@ h1,h2,h3{font-family:var(--serif)}
   </div>
 </div>
 
+<!-- PAY QR SHEET (扫码支付 ¥39) -->
+<div class="ov" id="ovPayGo">
+  <div class="sheet">
+    <button class="close-x" onclick="stopPayPoll();closeSheet('ovPayGo')">×</button>
+    <h3 style="text-align:center" data-t="payg_h"></h3>
+    <div class="pay-tabs" id="payTabs">
+      <div class="pay-tab on" data-m="wechat" onclick="setPayMethod('wechat')"><span>💚</span> <span data-t="pay_wechat"></span></div>
+      <div class="pay-tab" data-m="alipay" onclick="setPayMethod('alipay')"><span>🅰️</span> <span data-t="pay_alipay"></span></div>
+      <div class="pay-tab" data-m="card" onclick="setPayMethod('card')"><span>💳</span> <span data-t="pay_card"></span></div>
+    </div>
+    <div class="pay-qr" id="payQr"></div>
+    <p style="text-align:center;font-size:11px;color:var(--muted);margin-top:12px" data-t="payg_note"></p>
+  </div>
+</div>
+
 <!-- PRO SHEET (¥20/mo) -->
 <div class="ov" id="ovPro">
   <div class="sheet">
@@ -572,7 +595,10 @@ zh:{
  pw_f2:'AI 生成《致公司/领导的律师函·投诉信》',
  pw_f3:'专属维权路径规划：找哪个部门、准备什么材料',
  pw_f4:'一键对接平台合作律师（首次免费）',
- pw_cta:'生成我的案卷（内测免费）',pw_note:'内测期免费解锁 · 生成真实证据报告与律师函模板 · 记录永久免费',
+ pw_cta:'去支付 · 解锁我的案卷',pw_note:'一次性 ¥39 · 生成真实证据报告与律师函模板 · 记录永久免费',
+ payg_h:'扫码支付 ¥39',pay_wechat:'微信',pay_alipay:'支付宝',pay_card:'银行卡',
+ pay_card_soon:'银行卡支付即将开放（正在接入 Stripe）\n请先用微信 / 支付宝',
+ payg_note:'付款后自动解锁并生成你的案卷 · 记录永久免费',
  /* pro sheet */
  pro_sub:'给需要长期支持的你',pro_mo:'/月',
  pro_l1:'AI 教练不限量 + 深度维权建议',pro_l2:'云端加密备份',pro_l3:'优先律师 / 情感老师匹配',pro_cta2:'开通 Pro · ¥20/月',
@@ -642,7 +668,10 @@ en:{
  pw_f2:'AI-drafted formal letter to your employer',
  pw_f3:'A personalized action plan: who to contact, what to prepare',
  pw_f4:'One-tap connection to a partner lawyer (first consult free)',
- pw_cta:'Generate my case file (free beta)',pw_note:'Free to unlock during beta · generates a real evidence report and letter template · logging is always free',
+ pw_cta:'Pay · unlock my case file',pw_note:'One-time ¥39 · generates a real evidence report and letter template · logging is always free',
+ payg_h:'Pay ¥39 by QR',pay_wechat:'WeChat',pay_alipay:'Alipay',pay_card:'Card',
+ pay_card_soon:'Card payment coming soon (Stripe in progress)\nPlease use WeChat / Alipay for now',
+ payg_note:'Unlocks and generates your case file right after payment · logging is always free',
  pro_sub:'For when you need ongoing support',pro_mo:'/mo',
  pro_l1:'Unlimited AI coach + deep advice',pro_l2:'Encrypted cloud backup',pro_l3:'Priority matching',pro_cta2:'Start Pro · $4.99/mo',
  lt_h:'Letter template drafted (preview)',lt_sub:'A reference template auto-drafted from your records. Unlock to view, copy and export the full text.',
@@ -967,12 +996,54 @@ function buildLetter(){document.getElementById('letterBody').textContent=letterT
 function copyLetter(){const txt=letterText(true);navigator.clipboard?.writeText(txt).then(()=>toast(LANG==='zh'?'✓ 已复制全文':'✓ Copied'),()=>toast(txt.slice(0,1)&&(LANG==='zh'?'长按文字手动复制':'Long-press to copy')));}
 
 /* ¥39 维权包 —— 内测免费解锁，交付真东西(证据报告PDF + 完整律师函) */
-function unlockPack(){
+/* ¥39 维权包 —— 真支付：复用 Lumee 微信/支付宝商户收款(zhichang_39 商品·匿名下单) */
+const PAY_API='https://www.mylumee.cn';   // Lumee 后端(同商户号收款)
+let _payPoll=null,_payOut=null;
+function unlockPack(){   // 保留旧入口名 → 进入选支付方式
   if(!recs.length){toast(LANG==='zh'?'先记一条，才能生成案卷':'Log at least one entry first');return;}
+  closeSheet('ovPay');openSheet('ovPayGo');setPayMethod('wechat');
+}
+function setPayMethod(m){
+  document.querySelectorAll('#payTabs .pay-tab').forEach(t=>t.classList.toggle('on',t.dataset.m===m));
+  if(m==='card'){stopPayPoll();document.getElementById('payQr').innerHTML='<div class="pay-soon">'+t('pay_card_soon')+'</div>';return;}
+  createPay(m);
+}
+async function createPay(method){
+  stopPayPoll();_payOut=null;
+  const qr=document.getElementById('payQr');
+  qr.innerHTML='<div class="pay-loading">'+(LANG==='zh'?'生成支付二维码…':'Generating QR…')+'</div>';
+  const path=method==='alipay'?'/pay/alipay/qr':'/pay/wechat/create';
+  try{
+    const r=await fetch(PAY_API+path,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({productId:'zhichang_39',trade_type:'NATIVE'})});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok||!d.ok){qr.innerHTML='<div class="pay-err">'+((d&&d.error)||(LANG==='zh'?'该支付方式暂未开放，换一种试试':'Unavailable, try another'))+'</div>';return;}
+    const codeUrl=d.code_url||d.qr_code;
+    if(!codeUrl){qr.innerHTML='<div class="pay-err">'+(LANG==='zh'?'该支付方式暂未开放，换一种试试':'Unavailable, try another')+'</div>';return;}
+    _payOut=d.out_trade_no;
+    const pm=method==='alipay'?(LANG==='zh'?'支付宝':'Alipay'):(LANG==='zh'?'微信':'WeChat');
+    qr.innerHTML='<img class="pay-qr-img" src="https://api.qrserver.com/v1/create-qr-code/?size=440x440&margin=10&data='+encodeURIComponent(codeUrl)+'" alt="QR">'
+      +'<div class="pay-tip">'+(LANG==='zh'?'长按二维码 · 用'+pm+'扫码支付 ¥39':'Long-press to pay ¥39 with '+pm)+'</div>';
+    startPayPoll(method);
+  }catch(e){qr.innerHTML='<div class="pay-err">'+(LANG==='zh'?'网络异常，请重试':'Network error, retry')+'</div>';}
+}
+function startPayPoll(method){
+  stopPayPoll();let n=0;
+  const qp=method==='alipay'?'/pay/alipay/query':'/pay/wechat/query';
+  _payPoll=setInterval(async ()=>{
+    n++;if(n>100){stopPayPoll();return;}
+    if(!_payOut)return;
+    try{const r=await fetch(PAY_API+qp+'?out_trade_no='+encodeURIComponent(_payOut));
+      const d=await r.json().catch(()=>({}));
+      if(d&&d.status==='paid'){stopPayPoll();onPaid();}}catch(_){}
+  },3000);
+}
+function stopPayPoll(){if(_payPoll){clearInterval(_payPoll);_payPoll=null;}}
+function onPaid(){
   localStorage.zg_unlocked='1';
-  closeSheet('ovPay');
-  toast(LANG==='zh'?'✓ 已解锁·正在生成你的案卷':'✓ Unlocked · generating your case file');
-  setTimeout(()=>generateReport(),400);
+  closeSheet('ovPayGo');
+  toast(LANG==='zh'?'✓ 支付成功 · 正在生成你的案卷':'✓ Paid · generating your case file');
+  setTimeout(()=>generateReport(),500);
 }
 
 function proDemo(){closeSheet('ovPro');toast(t('paid_pro'));}
